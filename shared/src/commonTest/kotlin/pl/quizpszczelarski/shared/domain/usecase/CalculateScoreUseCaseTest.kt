@@ -9,11 +9,11 @@ class CalculateScoreUseCaseTest {
     private val useCase = CalculateScoreUseCase()
 
     private val sampleQuestions = listOf(
-        Question(id = 1, text = "Q1", options = listOf("A", "B", "C", "D"), correctAnswerIndex = 0),
-        Question(id = 2, text = "Q2", options = listOf("A", "B", "C", "D"), correctAnswerIndex = 1),
-        Question(id = 3, text = "Q3", options = listOf("A", "B", "C", "D"), correctAnswerIndex = 2),
-        Question(id = 4, text = "Q4", options = listOf("A", "B", "C", "D"), correctAnswerIndex = 3),
-        Question(id = 5, text = "Q5", options = listOf("A", "B", "C", "D"), correctAnswerIndex = 0),
+        Question(id = "1", text = "Q1", options = listOf("A", "B", "C", "D"), correctAnswerIndex = 0),
+        Question(id = "2", text = "Q2", options = listOf("A", "B", "C", "D"), correctAnswerIndex = 1),
+        Question(id = "3", text = "Q3", options = listOf("A", "B", "C", "D"), correctAnswerIndex = 2),
+        Question(id = "4", text = "Q4", options = listOf("A", "B", "C", "D"), correctAnswerIndex = 3),
+        Question(id = "5", text = "Q5", options = listOf("A", "B", "C", "D"), correctAnswerIndex = 0),
     )
 
     @Test

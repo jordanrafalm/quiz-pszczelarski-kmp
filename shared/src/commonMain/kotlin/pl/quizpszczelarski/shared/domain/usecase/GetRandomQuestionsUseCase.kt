@@ -16,8 +16,8 @@ class GetRandomQuestionsUseCase(
      * @param count Number of questions to return (default 5).
      * @return Shuffled list of [count] questions.
      */
-    operator fun invoke(count: Int = 5): List<Question> {
-        return repository.getAllQuestions()
+    suspend operator fun invoke(count: Int = 5): List<Question> {
+        return repository.getActiveQuestions()
             .shuffled()
             .take(count)
     }

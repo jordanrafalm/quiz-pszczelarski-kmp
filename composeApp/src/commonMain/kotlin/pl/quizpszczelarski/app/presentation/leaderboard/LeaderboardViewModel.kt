@@ -1,32 +1,48 @@
 package pl.quizpszczelarski.app.presentation.leaderboard
 
+import kotlinx.coroutines.launch
 import pl.quizpszczelarski.app.presentation.base.MviViewModel
 import pl.quizpszczelarski.shared.domain.model.LeaderboardEntry
+import pl.quizpszczelarski.shared.domain.repository.LeaderboardRepository
 
 /**
  * ViewModel for the Leaderboard screen.
- * Uses hardcoded sample data for MVP.
+ * Observes real-time leaderboard data from Firestore.
  */
-class LeaderboardViewModel : MviViewModel<LeaderboardState, LeaderboardIntent, LeaderboardEffect>(
-    LeaderboardState(),
+class LeaderboardViewModel(
+    private val leaderboardRepository: LeaderboardRepository,
+    private val currentUid: String?,
+) : MviViewModel<LeaderboardState, LeaderboardIntent, LeaderboardEffect>(
+    LeaderboardState(isLoading = true),
 ) {
 
     init {
-        loadSampleData()
+        observeLeaderboard()
     }
 
-    private fun loadSampleData() {
-        val entries = listOf(
-            LeaderboardEntry(rank = 1, name = "Pszczółka Maja", score = 95),
-            LeaderboardEntry(rank = 2, name = "Bartnik Jan", score = 88),
-            LeaderboardEntry(rank = 3, name = "ApisMaster", score = 82),
-            LeaderboardEntry(rank = 4, name = "HoneyBee22", score = 76),
-            LeaderboardEntry(rank = 5, name = "Ty", score = 60, isCurrentUser = true),
-            LeaderboardEntry(rank = 6, name = "BeeKeeper", score = 55),
-            LeaderboardEntry(rank = 7, name = "Kwiatowa", score = 48),
-        )
-        val currentUser = entries.first { it.isCurrentUser }
-        onIntent(LoadEntries(entries, currentUser.rank, currentUser.score))
+    private fun observeLeaderboard() {
+        scope.launch {
+            try {
+                leaderboardRepository.observeTopUsers(
+                    limit = 50,
+                    currentUid = currentUid ?: "",
+                )
+                    .collect { entries ->
+                        val userEntry = entries.firstOrNull { it.isCurrentUser }
+                        onIntent(
+                            LoadEntries(
+                                entries = entries,
+                                userRank = userEntry?.rank ?: 0,
+                                userScore = userEntry?.score ?: 0,
+                            ),
+                        )
+                    }
+            } catch (_: Exception) {
+                onIntent(
+                    ShowLoadError("Nie udało się załadować rankingu"),
+                )
+            }
+        }
     }
 
     override fun reduce(state: LeaderboardState, intent: LeaderboardIntent): LeaderboardState {
@@ -40,16 +56,24 @@ class LeaderboardViewModel : MviViewModel<LeaderboardState, LeaderboardIntent, L
                 entries = intent.entries,
                 userRank = intent.userRank,
                 userScore = intent.userScore,
+                isLoading = false,
+                errorMessage = null,
+            )
+
+            is ShowLoadError -> state.copy(
+                isLoading = false,
+                errorMessage = intent.message,
             )
         }
     }
 }
 
-/**
- * Internal intent used only by ViewModel to load leaderboard entries.
- */
+/** Internal intent: leaderboard entries loaded. */
 internal data class LoadEntries(
     val entries: List<LeaderboardEntry>,
     val userRank: Int,
     val userScore: Int,
 ) : LeaderboardIntent
+
+/** Internal intent: leaderboard loading failed. */
+internal data class ShowLoadError(val message: String) : LeaderboardIntent

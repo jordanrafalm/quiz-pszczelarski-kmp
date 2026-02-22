@@ -6,4 +6,5 @@ package pl.quizpszczelarski.app.presentation.result
 sealed interface ResultEffect {
     data object NavigateToQuiz : ResultEffect
     data object NavigateToLeaderboard : ResultEffect
+    data class ShowError(val message: String) : ResultEffect
 }

@@ -1,6 +1,8 @@
 package pl.quizpszczelarski.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,8 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardIntent
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardState
@@ -55,23 +60,56 @@ fun LeaderboardScreen(
 
         Spacer(modifier = Modifier.height(spacing.lg))
 
-        // Leaderboard entries
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = spacing.lg),
-        ) {
-            items(
-                items = state.entries,
-                key = { it.rank },
-            ) { entry ->
-                LeaderboardEntryRow(
-                    rank = entry.rank,
-                    name = entry.name,
-                    score = entry.score,
-                    isCurrentUser = entry.isCurrentUser,
-                )
-                Spacer(modifier = Modifier.height(spacing.sm))
+        when {
+            state.isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+
+            state.errorMessage != null -> {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = state.errorMessage,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+
+            else -> {
+                // Leaderboard entries
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = spacing.lg),
+                ) {
+                    items(
+                        items = state.entries,
+                        key = { "${it.uid}-${it.rank}" },
+                    ) { entry ->
+                        LeaderboardEntryRow(
+                            rank = entry.rank,
+                            name = entry.name,
+                            score = entry.score,
+                            isCurrentUser = entry.isCurrentUser,
+                        )
+                        Spacer(modifier = Modifier.height(spacing.sm))
+                    }
+                }
             }
         }
 

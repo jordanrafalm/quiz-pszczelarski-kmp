@@ -15,6 +15,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.auth
+import dev.gitlive.firebase.firestore.firestore
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import pl.quizpszczelarski.app.presentation.home.HomeEffect
 import pl.quizpszczelarski.app.presentation.home.HomeViewModel
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardEffect
@@ -28,22 +33,39 @@ import pl.quizpszczelarski.app.ui.screens.LeaderboardScreen
 import pl.quizpszczelarski.app.ui.screens.QuizScreen
 import pl.quizpszczelarski.app.ui.screens.ResultScreen
 import pl.quizpszczelarski.app.ui.screens.SplashScreen
-import pl.quizpszczelarski.shared.data.source.LocalQuestionDataSource
+import pl.quizpszczelarski.shared.data.leaderboard.FirebaseLeaderboardRepository
+import pl.quizpszczelarski.shared.data.questions.FirebaseQuestionsRepository
+import pl.quizpszczelarski.shared.data.user.FirebaseUserRepository
+import pl.quizpszczelarski.shared.domain.usecase.EnsureUserUseCase
 import pl.quizpszczelarski.shared.domain.usecase.GetRandomQuestionsUseCase
+import pl.quizpszczelarski.shared.domain.usecase.SubmitScoreUseCase
 
 /**
  * Simple state-based navigation using [AnimatedContent].
  *
  * MVP approach: no third-party navigation library.
- * ViewModels are created directly (no DI yet — Koin in Phase 2+).
+ * ViewModels are created directly (no DI yet — Koin in Phase 3+).
  */
 @Composable
 fun AppNavigation() {
     var currentRoute by remember { mutableStateOf<Route>(Route.Splash) }
 
-    // Shared dependencies (MVP — direct instantiation)
-    val questionRepository = remember { LocalQuestionDataSource() }
+    // Firebase instances (GitLive singletons)
+    val auth = remember { Firebase.auth }
+    val firestore = remember { Firebase.firestore }
+
+    // Repositories
+    val questionRepository = remember { FirebaseQuestionsRepository(firestore) }
+    val userRepository = remember { FirebaseUserRepository(auth, firestore) }
+    val leaderboardRepository = remember { FirebaseLeaderboardRepository(firestore) }
+
+    // Use cases
     val getRandomQuestions = remember { GetRandomQuestionsUseCase(questionRepository) }
+    val submitScore = remember { SubmitScoreUseCase(userRepository) }
+    val ensureUser = remember { EnsureUserUseCase(userRepository) }
+
+    // User session state (shared across screens)
+    var currentUid by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
@@ -55,8 +77,22 @@ fun AppNavigation() {
             when (route) {
                 Route.Splash -> {
                     SplashScreen(
-                        onSplashFinished = { currentRoute = Route.Home },
+                        onSplashFinished = { /* handled by LaunchedEffect */ },
                     )
+                    LaunchedEffect(Unit) {
+                        val bootstrapJob = async {
+                            try {
+                                val (uid, _) = ensureUser()
+                                currentUid = uid
+                            } catch (_: Exception) {
+                                // Proceed without auth (offline / error fallback)
+                            }
+                        }
+                        // Ensure splash shows for at least 2s
+                        delay(2000L)
+                        bootstrapJob.await()
+                        currentRoute = Route.Home
+                    }
                 }
 
                 Route.Home -> {
@@ -102,6 +138,8 @@ fun AppNavigation() {
                         ResultViewModel(
                             score = route.score,
                             totalQuestions = route.total,
+                            submitScore = submitScore,
+                            uid = currentUid,
                         )
                     }
                     DisposableEffect(Unit) { onDispose { vm.onCleared() } }
@@ -112,6 +150,7 @@ fun AppNavigation() {
                             when (effect) {
                                 ResultEffect.NavigateToQuiz -> currentRoute = Route.Quiz
                                 ResultEffect.NavigateToLeaderboard -> currentRoute = Route.Leaderboard
+                                is ResultEffect.ShowError -> { /* score error is non-blocking */ }
                             }
                         }
                     }
@@ -120,7 +159,12 @@ fun AppNavigation() {
                 }
 
                 Route.Leaderboard -> {
-                    val vm = remember { LeaderboardViewModel() }
+                    val vm = remember {
+                        LeaderboardViewModel(
+                            leaderboardRepository = leaderboardRepository,
+                            currentUid = currentUid,
+                        )
+                    }
                     DisposableEffect(Unit) { onDispose { vm.onCleared() } }
                     val state by vm.state.collectAsState()
 

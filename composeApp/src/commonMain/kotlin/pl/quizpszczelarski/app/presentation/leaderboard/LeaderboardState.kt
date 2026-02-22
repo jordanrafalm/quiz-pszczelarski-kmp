@@ -8,9 +8,10 @@ import pl.quizpszczelarski.shared.domain.model.LeaderboardEntry
 data class LeaderboardState(
     val entries: List<LeaderboardEntry> = emptyList(),
     val selectedTabIndex: Int = 0,
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val userRank: Int = 0,
     val userScore: Int = 0,
+    val errorMessage: String? = null,
 ) {
     val tabs: List<String> = listOf("All-time", "Weekly")
 }

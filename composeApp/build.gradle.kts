@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.googleServices)
 }
 
 kotlin {
@@ -40,7 +41,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "pl.quizpszczelarski"
+        applicationId = "pl.quizpszczelarski.app"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

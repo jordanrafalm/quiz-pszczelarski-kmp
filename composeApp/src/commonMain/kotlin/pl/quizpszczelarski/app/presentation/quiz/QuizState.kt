@@ -11,6 +11,7 @@ data class QuizState(
     val selectedAnswerIndex: Int? = null,
     val score: Int = 0,
     val isLoading: Boolean = true,
+    val errorMessage: String? = null,
 ) {
     val currentQuestion: Question? get() = questions.getOrNull(currentQuestionIndex)
     val totalQuestions: Int get() = questions.size

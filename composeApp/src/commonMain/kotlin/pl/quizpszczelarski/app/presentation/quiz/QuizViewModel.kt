@@ -1,5 +1,6 @@
 package pl.quizpszczelarski.app.presentation.quiz
 
+import kotlinx.coroutines.launch
 import pl.quizpszczelarski.app.presentation.base.MviViewModel
 import pl.quizpszczelarski.shared.domain.model.Question
 import pl.quizpszczelarski.shared.domain.usecase.GetRandomQuestionsUseCase
@@ -17,8 +18,14 @@ class QuizViewModel(
     }
 
     private fun loadQuestions() {
-        val questions = getRandomQuestions()
-        onIntent(LoadQuestions(questions))
+        scope.launch {
+            try {
+                val questions = getRandomQuestions()
+                onIntent(LoadQuestions(questions))
+            } catch (_: Exception) {
+                onIntent(ShowLoadError("Nie udało się załadować pytań"))
+            }
+        }
     }
 
     override fun reduce(state: QuizState, intent: QuizIntent): QuizState {
@@ -57,16 +64,22 @@ class QuizViewModel(
             is LoadQuestions -> state.copy(
                 questions = intent.questions,
                 isLoading = false,
+                errorMessage = null,
                 currentQuestionIndex = 0,
                 selectedAnswerIndex = null,
                 score = 0,
+            )
+
+            is ShowLoadError -> state.copy(
+                isLoading = false,
+                errorMessage = intent.message,
             )
         }
     }
 }
 
-/**
- * Internal intent used only by ViewModel to load questions.
- * Not exposed to UI.
- */
+/** Internal intent: questions loaded successfully. */
 internal data class LoadQuestions(val questions: List<Question>) : QuizIntent
+
+/** Internal intent: question loading failed. */
+internal data class ShowLoadError(val message: String) : QuizIntent

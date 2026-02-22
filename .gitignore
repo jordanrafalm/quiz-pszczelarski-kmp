@@ -29,3 +29,7 @@ tools/duck-mcp
 # Agent & Serena files
 .github/agents/
 .serena/
+
+# Firebase config (contains API keys)
+composeApp/google-services.json
+iosApp/iosApp/GoogleService-Info.plist
