@@ -33,6 +33,7 @@ abstract class MviViewModel<S, I, E>(initialState: S) {
 
     /**
      * Entry point for all user actions.
+     * Dispatches intent to reducer, updates state, then processes any queued effects.
      */
     fun onIntent(intent: I) {
         val newState = reduce(_state.value, intent)
@@ -41,20 +42,29 @@ abstract class MviViewModel<S, I, E>(initialState: S) {
 
     /**
      * Reducer: given current state + intent, produces new state.
-     * May call [emitEffect] for one-off side effects (navigation, haptics, etc.).
-     * For async work, use [scope] instead.
+     *
+     * Side effects (navigation, haptics, snackbars, etc.) should be emitted via [emitEffect].
+     * Effects are queued asynchronously and delivered to UI in order.
+     *
+     * Reducer must be deterministic: same (state, intent) → same new state.
+     * However, effects can be emitted as a side effect (queued, not awaited).
      */
     protected abstract fun reduce(state: S, intent: I): S
 
     /**
-     * Send a one-off effect (navigation, toast, etc.).
+     * Queue a one-off effect (navigation, toast, haptic, etc.) for delivery to UI.
+     * Effects are buffered and consumed by UI collectors in FIFO order.
+     *
+     * Note: Effect delivery is asynchronous relative to state update.
+     * UI should observe both state and effect flows to handle all changes.
      */
     protected fun emitEffect(effect: E) {
         scope.launch { _effect.send(effect) }
     }
 
     /**
-     * Call when the ViewModel is no longer needed.
+     * Call when the ViewModel is no longer needed (screen destroyed, etc.).
+     * Cancels all pending coroutines and prevents memory leaks.
      */
     open fun onCleared() {
         scope.cancel()

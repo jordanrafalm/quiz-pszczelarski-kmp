@@ -9,7 +9,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +34,8 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,9 +47,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalUriHandler
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
@@ -59,8 +61,6 @@ import pl.quizpszczelarski.app.ui.components.ActionCard
 import pl.quizpszczelarski.app.ui.components.QuizTopBar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import pl.quizpszczelarski.app.ui.components.AppButton
-import pl.quizpszczelarski.app.ui.components.AppButtonVariant
 import pl.quizpszczelarski.app.ui.theme.AppTheme
 import kotlin.math.PI
 import kotlin.math.sin
@@ -428,18 +428,24 @@ private fun LevelSelectContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            AppButton(
-                text = "🐝  Normalny",
+            LevelOptionButton(
+                title = "🐝  Łatwy",
                 onClick = { onIntent(HomeIntent.SelectLevel("easy")) },
-                variant = AppButtonVariant.Secondary,
             )
 
             Spacer(modifier = Modifier.height(spacing.lg))
 
-            AppButton(
-                text = "🏆  Pro dla Pszczelarzy",
+            LevelOptionButton(
+                title = "🎓  Technik Pszczelarz",
+                subtitle = "kwalifikacje ROL.03 i ROL.09",
+                onClick = { onIntent(HomeIntent.SelectLevel("mid")) },
+            )
+
+            Spacer(modifier = Modifier.height(spacing.lg))
+
+            LevelOptionButton(
+                title = "🏆  Pro dla Pszczelarzy",
                 onClick = { onIntent(HomeIntent.SelectLevel("pro")) },
-                variant = AppButtonVariant.Secondary,
             )
 
             Spacer(modifier = Modifier.height(spacing.xxl))
@@ -492,6 +498,48 @@ private fun LevelSelectContent(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Level selection button with title and optional subtitle row.
+ * Uses wrapContentHeight so multi-line subtitles are not clipped.
+ */
+@Composable
+private fun LevelOptionButton(
+    title: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 14.dp),
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelLarge,
+                textAlign = TextAlign.Center,
+            )
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
             }
         }
     }

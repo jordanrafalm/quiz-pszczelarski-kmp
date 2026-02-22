@@ -1,5 +1,12 @@
 package pl.quizpszczelarski.app.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,11 +34,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import pl.quizpszczelarski.app.presentation.quiz.AnswerFeedback
 import pl.quizpszczelarski.app.presentation.quiz.QuizIntent
 import pl.quizpszczelarski.app.presentation.quiz.QuizState
 import pl.quizpszczelarski.app.ui.components.AnswerOption
 import pl.quizpszczelarski.app.ui.components.AnswerOptionState
 import pl.quizpszczelarski.app.ui.components.AppButton
+import pl.quizpszczelarski.app.ui.components.BonusOverlay
+import pl.quizpszczelarski.app.ui.components.InfotipCard
 import pl.quizpszczelarski.app.ui.components.QuizProgressBar
 import pl.quizpszczelarski.app.ui.theme.AppTheme
 
@@ -96,141 +106,194 @@ fun QuizScreen(
         else -> {
             val currentQuestion = state.currentQuestion ?: return
 
-            Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                // Offline / refreshing indicator
-                if (state.isOffline) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.errorContainer)
-                            .padding(horizontal = spacing.lg, vertical = spacing.sm),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = "📡",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Spacer(modifier = Modifier.width(spacing.sm))
-                        Text(
-                            text = "Tryb offline — używam zapisanych pytań",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                        )
-                    }
-                } else if (state.isRefreshing) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.primaryContainer)
-                            .padding(horizontal = spacing.lg, vertical = spacing.sm),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(14.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                        Spacer(modifier = Modifier.width(spacing.sm))
-                        Text(
-                            text = "Synchronizacja pytań…",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                    }
-                }
-
-                // Top bar with exit button
-                Row(
+            Box(modifier = modifier.fillMaxSize()) {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = spacing.lg, vertical = spacing.sm),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                        .verticalScroll(rememberScrollState()),
                 ) {
-                    IconButton(
-                        onClick = { onIntent(QuizIntent.ExitQuiz) },
-                        modifier = Modifier.size(40.dp),
-                    ) {
-                        Box(
+                    // Offline / refreshing indicator
+                    if (state.isOffline) {
+                        Row(
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                            contentAlignment = Alignment.Center,
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.errorContainer)
+                                .padding(horizontal = spacing.lg, vertical = spacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = "✕",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface,
+                                text = "📡",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            Spacer(modifier = Modifier.width(spacing.sm))
+                            Text(
+                                text = "Tryb offline — używam zapisanych pytań",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                            )
+                        }
+                    } else if (state.isRefreshing) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.primaryContainer)
+                                .padding(horizontal = spacing.lg, vertical = spacing.sm),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                            Spacer(modifier = Modifier.width(spacing.sm))
+                            Text(
+                                text = "Synchronizacja pytań…",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
                             )
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(spacing.lg))
-
-                // Progress bar
-                QuizProgressBar(
-                    currentQuestion = state.currentQuestionIndex,
-                    totalQuestions = state.totalQuestions,
-                )
-
-                Spacer(modifier = Modifier.height(spacing.xl))
-
-                // Question card
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = spacing.lg),
-                    shape = MaterialTheme.shapes.large,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                    ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                ) {
-                    Text(
-                        text = currentQuestion.text,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(spacing.xl),
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(spacing.xl))
-
-                // Answer options
-                Column(
-                    modifier = Modifier.padding(horizontal = spacing.lg),
-                ) {
-                    currentQuestion.options.forEachIndexed { index, option ->
-                        AnswerOption(
-                            text = option,
-                            state = when {
-                                state.selectedAnswerIndex == index -> AnswerOptionState.Selected
-                                else -> AnswerOptionState.Default
-                            },
-                            onClick = { onIntent(QuizIntent.SelectAnswer(index)) },
-                        )
-                        if (index < currentQuestion.options.lastIndex) {
-                            Spacer(modifier = Modifier.height(spacing.sm))
+                    // Top bar with exit button
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = spacing.lg, vertical = spacing.sm),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconButton(
+                            onClick = { onIntent(QuizIntent.ExitQuiz) },
+                            modifier = Modifier.size(40.dp),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = "✕",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(spacing.lg))
+
+                    // Progress bar
+                    QuizProgressBar(
+                        currentQuestion = state.currentQuestionIndex,
+                        totalQuestions = state.totalQuestions,
+                    )
+
+                    Spacer(modifier = Modifier.height(spacing.xl))
+
+                    // Question card
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = spacing.lg),
+                        shape = MaterialTheme.shapes.large,
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    ) {
+                        Text(
+                            text = currentQuestion.text,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(spacing.xl),
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(spacing.xl))
+
+                    // Answer options
+                    Column(
+                        modifier = Modifier.padding(horizontal = spacing.lg),
+                    ) {
+                        currentQuestion.options.forEachIndexed { index, option ->
+                            val answerState = when {
+                                // After check:
+                                state.isAnswerChecked && state.selectedAnswerIndex == index &&
+                                    state.answerFeedback == AnswerFeedback.Correct -> AnswerOptionState.Correct
+                                state.isAnswerChecked && state.selectedAnswerIndex == index &&
+                                    state.answerFeedback == AnswerFeedback.Wrong -> AnswerOptionState.Wrong
+                                state.isAnswerChecked && state.correctAnswerIndex == index -> AnswerOptionState.Correct
+                                state.isAnswerChecked -> AnswerOptionState.Disabled
+                                // Before check:
+                                state.selectedAnswerIndex == index -> AnswerOptionState.Selected
+                                else -> AnswerOptionState.Default
+                            }
+
+                            AnswerOption(
+                                text = option,
+                                state = answerState,
+                                onClick = { onIntent(QuizIntent.SelectAnswer(index)) },
+                                enabled = !state.isAnswerChecked,
+                            )
+                            if (index < currentQuestion.options.lastIndex) {
+                                Spacer(modifier = Modifier.height(spacing.sm))
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(spacing.xl))
+
+                    // Buttons:
+                    // - Before check: "Sprawdź"
+                    // - After check + correct: nothing (auto-advancing via ViewModel)
+                    // - After check + wrong: "Dalej" + animated infotip
+                    if (!state.isAnswerChecked) {
+                        AppButton(
+                            text = "Sprawdź",
+                            onClick = { onIntent(QuizIntent.CheckAnswer) },
+                            enabled = state.selectedAnswerIndex != null,
+                            modifier = Modifier.padding(horizontal = spacing.lg, vertical = spacing.lg),
+                        )
+                    } else if (state.answerFeedback == AnswerFeedback.Wrong) {
+                        AppButton(
+                            text = if (state.isLastQuestion) "Zakończ quiz" else "Dalej",
+                            onClick = { onIntent(QuizIntent.NextQuestion) },
+                            enabled = true,
+                            modifier = Modifier.padding(horizontal = spacing.lg),
+                        )
+
+                        AnimatedVisibility(
+                            visible = state.currentInfotip != null,
+                            enter = expandVertically(animationSpec = tween(400, easing = EaseOutCubic)) +
+                                fadeIn(animationSpec = tween(300)),
+                            exit = shrinkVertically(animationSpec = tween(200)) +
+                                fadeOut(animationSpec = tween(150)),
+                        ) {
+                            state.currentInfotip?.let { tip ->
+                                InfotipCard(
+                                    text = tip,
+                                    modifier = Modifier.padding(horizontal = spacing.lg, vertical = spacing.sm),
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(spacing.lg))
+                    }
+                    // else: correct answer — no button, ViewModel auto-advances after 900ms
                 }
 
-                Spacer(modifier = Modifier.height(spacing.xl))
-
-                // Next / Finish button
-                AppButton(
-                    text = if (state.isLastQuestion) "Zakończ quiz" else "Dalej",
-                    onClick = { onIntent(QuizIntent.NextQuestion) },
-                    enabled = state.canProceed,
-                    modifier = Modifier.padding(horizontal = spacing.lg, vertical = spacing.lg),
-                )
+                // Bonus overlay — bee flies from bottom to top, no background
+                if (state.showBonus) {
+                    BonusOverlay(
+                        onAnimationEnd = {
+                            onIntent(QuizIntent.DismissBonus)
+                            onIntent(QuizIntent.NextQuestion)
+                        },
+                    )
+                }
             }
         }
     }

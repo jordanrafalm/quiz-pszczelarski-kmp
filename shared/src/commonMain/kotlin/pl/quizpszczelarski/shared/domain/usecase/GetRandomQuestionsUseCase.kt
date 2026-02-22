@@ -21,5 +21,13 @@ class GetRandomQuestionsUseCase(
         return repository.getActiveQuestions(level = level)
             .shuffled()
             .take(count)
+            .map { question ->
+                val correctOption = question.options[question.correctAnswerIndex]
+                val shuffledOptions = question.options.shuffled()
+                question.copy(
+                    options = shuffledOptions,
+                    correctAnswerIndex = shuffledOptions.indexOf(correctOption),
+                )
+            }
     }
 }
