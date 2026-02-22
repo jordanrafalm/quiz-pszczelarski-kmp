@@ -44,14 +44,16 @@ fun SplashScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Bee Lottie animation — full width
+        // Bee Lottie animation — wider to create edge effect
         Image(
             painter = rememberLottiePainter(
                 composition = composition,
                 iterations = Compottie.IterateForever,
             ),
             contentDescription = "Bee animation",
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(1.5f)
+                .height(400.dp),
         )
 
         Spacer(modifier = Modifier.height(spacing.xl))

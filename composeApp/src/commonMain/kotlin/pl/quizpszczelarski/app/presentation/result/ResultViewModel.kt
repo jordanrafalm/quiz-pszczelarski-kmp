@@ -62,11 +62,18 @@ class ResultViewModel(
 
     override fun reduce(state: ResultState, intent: ResultIntent): ResultState {
         when (intent) {
+            ResultIntent.GoBack -> emitEffect(ResultEffect.NavigateToHome)
             ResultIntent.PlayAgain -> emitEffect(ResultEffect.NavigateToHome)
             ResultIntent.ViewLeaderboard -> emitEffect(ResultEffect.NavigateToLeaderboard)
             ResultIntent.ShowNicknameDialog -> return state.copy(showNicknamePrompt = true)
             is ResultIntent.UpdateNicknameInput -> return state.copy(nicknameInput = intent.text)
-            ResultIntent.DismissNicknameDialog -> return state.copy(showNicknamePrompt = false)
+            ResultIntent.DismissNicknameDialog -> {
+                // Mark as seen so it doesn't show on subsequent games
+                scope.launch {
+                    try { settingsRepository.setHasCustomNickname(true) } catch (_: Exception) {}
+                }
+                return state.copy(showNicknamePrompt = false)
+            }
             ResultIntent.ConfirmNickname -> {
                 val nick = state.nicknameInput.trim()
                 if (nick.isNotEmpty() && uid != null) {

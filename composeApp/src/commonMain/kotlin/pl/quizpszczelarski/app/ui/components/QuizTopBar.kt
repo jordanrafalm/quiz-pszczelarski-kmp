@@ -29,6 +29,7 @@ import pl.quizpszczelarski.app.ui.theme.AppTheme
 fun QuizTopBar(
     title: String,
     onBackClick: (() -> Unit)? = null,
+    backIcon: String = "←",
     modifier: Modifier = Modifier,
 ) {
     val spacing = AppTheme.spacing
@@ -50,19 +51,23 @@ fun QuizTopBar(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "←",
+                        text = backIcon,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
                 Spacer(modifier = Modifier.width(spacing.md))
             }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            // keep space for title, actual title is centered in the Box below
+            Spacer(modifier = Modifier.weight(1f))
         }
+        // Center the title within the top bar box so it stays visually centered
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.align(Alignment.Center),
+        )
         HorizontalDivider(
             modifier = Modifier.align(Alignment.BottomStart),
             thickness = 1.dp,

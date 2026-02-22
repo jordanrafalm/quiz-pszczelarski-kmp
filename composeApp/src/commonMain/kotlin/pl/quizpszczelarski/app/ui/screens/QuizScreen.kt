@@ -32,7 +32,6 @@ import pl.quizpszczelarski.app.presentation.quiz.QuizState
 import pl.quizpszczelarski.app.ui.components.AnswerOption
 import pl.quizpszczelarski.app.ui.components.AnswerOptionState
 import pl.quizpszczelarski.app.ui.components.AppButton
-import pl.quizpszczelarski.app.ui.components.AppButtonVariant
 import pl.quizpszczelarski.app.ui.components.QuizProgressBar
 import pl.quizpszczelarski.app.ui.theme.AppTheme
 
