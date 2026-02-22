@@ -13,6 +13,7 @@ local.properties
 
 # Kotlin/Native
 .konan/
+.kotlin/
 
 # Xcode
 iosApp/iosApp.xcodeproj/project.xcworkspace/
