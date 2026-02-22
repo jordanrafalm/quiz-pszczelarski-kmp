@@ -7,6 +7,7 @@ import pl.quizpszczelarski.shared.data.local.PendingScoreDataSource
 import pl.quizpszczelarski.shared.data.util.currentTimeMillis
 import pl.quizpszczelarski.shared.domain.repository.SettingsRepository
 import pl.quizpszczelarski.shared.domain.repository.UserRepository
+import pl.quizpszczelarski.shared.domain.service.AnalyticsService
 import pl.quizpszczelarski.shared.domain.usecase.SubmitScoreUseCase
 
 /**
@@ -22,6 +23,7 @@ class ResultViewModel(
     private val pendingScoreDataSource: PendingScoreDataSource,
     private val userRepository: UserRepository,
     private val settingsRepository: SettingsRepository,
+    private val analyticsService: AnalyticsService,
 ) : MviViewModel<ResultState, ResultIntent, ResultEffect>(
     ResultState(score = score, totalQuestions = totalQuestions),
 ) {
@@ -46,6 +48,10 @@ class ResultViewModel(
                 submitScore(uid, state.value.score)
             } catch (e: Exception) {
                 // Submit failed (offline) — queue score locally
+                analyticsService.recordNonFatal(e, mapOf(
+                    "context" to "submit_score",
+                    "score" to state.value.score.toString(),
+                ))
                 try {
                     pendingScoreDataSource.insert(
                         uid = uid,

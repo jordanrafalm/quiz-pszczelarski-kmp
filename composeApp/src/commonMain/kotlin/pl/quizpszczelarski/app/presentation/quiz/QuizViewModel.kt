@@ -3,9 +3,12 @@ package pl.quizpszczelarski.app.presentation.quiz
 import kotlinx.coroutines.launch
 import pl.quizpszczelarski.app.platform.ImpactType
 import pl.quizpszczelarski.app.presentation.base.MviViewModel
+import pl.quizpszczelarski.shared.data.analytics.hashPrefix
+import pl.quizpszczelarski.shared.data.util.currentTimeMillis
 import pl.quizpszczelarski.shared.domain.model.Question
 import pl.quizpszczelarski.shared.domain.repository.QuestionSyncService
 import pl.quizpszczelarski.shared.domain.repository.SyncResult
+import pl.quizpszczelarski.shared.domain.service.AnalyticsService
 import pl.quizpszczelarski.shared.domain.usecase.GetRandomQuestionsUseCase
 
 /**
@@ -16,9 +19,14 @@ import pl.quizpszczelarski.shared.domain.usecase.GetRandomQuestionsUseCase
 class QuizViewModel(
     private val getRandomQuestions: GetRandomQuestionsUseCase,
     private val syncService: QuestionSyncService,
+    private val analyticsService: AnalyticsService,
     private val level: String = "easy",
     private val questionCount: Int = 5,
+    private val quizRunIndex: Int = 1,
 ) : MviViewModel<QuizState, QuizIntent, QuizEffect>(QuizState()) {
+
+    private val mode = "quiz" // MVP — single mode; future: "learning", "exam"
+    private var quizStartTimeMs: Long = 0L
 
     init {
         loadQuestions()
@@ -38,6 +46,14 @@ class QuizViewModel(
 
                 onIntent(LoadQuestions(questions))
 
+                // Analytics: quiz started
+                quizStartTimeMs = currentTimeMillis()
+                analyticsService.logQuizStarted(mode, level, questions.size, quizRunIndex)
+
+                // Crashlytics: set quiz ID hash from concatenated question IDs
+                val quizIdHash = hashPrefix(questions.joinToString(",") { it.id })
+                analyticsService.setCustomKey("quiz_id_hash", quizIdHash)
+
                 // Step 2: Background sync (doesn't replace current quiz questions)
                 onIntent(SyncStarted)
                 val syncResult = syncService.syncQuestionsIfNeeded()
@@ -50,7 +66,11 @@ class QuizViewModel(
                         emitEffect(QuizEffect.ShowSnackbar("Tryb offline — używam zapisanych pytań"))
                     else -> { /* no user notification needed */ }
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                analyticsService.recordNonFatal(e, mapOf(
+                    "context" to "load_questions",
+                    "level" to level,
+                ))
                 onIntent(ShowLoadError("Nie udało się załadować pytań"))
             }
         }
@@ -60,6 +80,11 @@ class QuizViewModel(
         return when (intent) {
             is QuizIntent.SelectAnswer -> {
                 emitEffect(QuizEffect.PlayHaptic(ImpactType.Light))
+                // Crashlytics: track current question hash
+                val question = state.currentQuestion
+                if (question != null) {
+                    analyticsService.setCustomKey("question_id_hash", hashPrefix(question.id))
+                }
                 state.copy(
                     selectedAnswerIndex = intent.index,
                 )
@@ -71,6 +96,16 @@ class QuizViewModel(
             }
 
             is QuizIntent.ExitQuiz -> {
+                // Analytics: quiz abandoned
+                val durationMs = if (quizStartTimeMs > 0) currentTimeMillis() - quizStartTimeMs else 0L
+                analyticsService.logQuizAbandoned(
+                    mode = mode,
+                    level = level,
+                    questionCount = state.totalQuestions,
+                    questionsAnswered = state.currentQuestionIndex,
+                    durationMs = durationMs,
+                    quizRunIndex = quizRunIndex,
+                )
                 emitEffect(QuizEffect.NavigateToHome)
                 state
             }
@@ -86,6 +121,17 @@ class QuizViewModel(
                 }
 
                 if (state.isLastQuestion) {
+                    // Analytics: quiz completed
+                    val durationMs = if (quizStartTimeMs > 0) currentTimeMillis() - quizStartTimeMs else 0L
+                    analyticsService.logQuizCompleted(
+                        mode = mode,
+                        level = level,
+                        questionCount = state.totalQuestions,
+                        score = newScore,
+                        durationMs = durationMs,
+                        quizRunIndex = quizRunIndex,
+                    )
+
                     val hapticType = if (newScore > state.totalQuestions / 2) {
                         ImpactType.Success
                     } else {
@@ -100,6 +146,9 @@ class QuizViewModel(
                     )
                     state.copy(score = newScore)
                 } else {
+                    // Crashlytics: track current question index
+                    analyticsService.setCustomKey("current_question_index", (state.currentQuestionIndex + 1).toString())
+
                     emitEffect(QuizEffect.PlayHaptic(ImpactType.Light))
                     state.copy(
                         currentQuestionIndex = state.currentQuestionIndex + 1,

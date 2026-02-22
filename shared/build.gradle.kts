@@ -21,6 +21,8 @@ kotlin {
             api(libs.firebase.auth)
             api(libs.firebase.firestore)
             api(libs.firebase.config)
+            api(libs.firebase.analytics)
+            api(libs.firebase.crashlytics)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.sqldelight.coroutines)
             api(libs.multiplatform.settings)

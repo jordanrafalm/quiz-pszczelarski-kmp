@@ -51,6 +51,7 @@ import pl.quizpszczelarski.app.ui.screens.LeaderboardScreen
 import pl.quizpszczelarski.app.ui.screens.QuizScreen
 import pl.quizpszczelarski.app.ui.screens.ResultScreen
 import pl.quizpszczelarski.app.ui.screens.SplashScreen
+import pl.quizpszczelarski.shared.data.analytics.FirebaseAnalyticsService
 import pl.quizpszczelarski.shared.data.config.FirebaseAppConfigRepository
 import pl.quizpszczelarski.shared.data.leaderboard.FirebaseLeaderboardRepository
 import pl.quizpszczelarski.shared.data.local.DatabaseDriverFactory
@@ -127,6 +128,10 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
     // Remote config
     val configRepository = remember { FirebaseAppConfigRepository() }
     var appConfig by remember { mutableStateOf(AppConfig()) }
+
+    // Analytics
+    val analyticsService = remember { FirebaseAnalyticsService() }
+    var quizRunIndex by remember { mutableStateOf(0) }
 
     val haptics = LocalHaptics.current
     val notificationScheduler = LocalNotificationScheduler.current
@@ -210,6 +215,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                     try {
                                         val (uid, _) = ensureUser()
                                         currentUid = uid
+                                        analyticsService.setUserId(uid)
                                     } catch (_: Exception) {
                                         // Proceed without auth (offline / error fallback)
                                     }
@@ -288,6 +294,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                 vm.effect.collect { effect ->
                                     when (effect) {
                                         is HomeEffect.NavigateToQuiz -> {
+                                            quizRunIndex++
                                             currentRoute = Route.Quiz(
                                                 level = effect.level,
                                                 questionCount = effect.questionCount,
@@ -336,7 +343,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                         }
 
                         is Route.Quiz -> {
-                            val vm = remember { QuizViewModel(getRandomQuestions, questionSyncService, route.level, route.questionCount) }
+                            val vm = remember { QuizViewModel(getRandomQuestions, questionSyncService, analyticsService, route.level, route.questionCount, quizRunIndex) }
                             DisposableEffect(Unit) { onDispose { vm.onCleared() } }
                             val state by vm.state.collectAsState()
 
@@ -381,6 +388,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                     pendingScoreDataSource = pendingScoreDataSource,
                                     userRepository = userRepository,
                                     settingsRepository = settingsRepo,
+                                    analyticsService = analyticsService,
                                 )
                             }
                             DisposableEffect(Unit) { onDispose { vm.onCleared() } }
@@ -412,6 +420,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                     leaderboardRepository = leaderboardRepository,
                                     currentUid = currentUid,
                                     userRepository = userRepository,
+                                    analyticsService = analyticsService,
                                 )
                             }
                             DisposableEffect(Unit) { onDispose { vm.onCleared() } }

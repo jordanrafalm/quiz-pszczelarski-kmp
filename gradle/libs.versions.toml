@@ -25,6 +25,8 @@ multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", vers
 multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatform-settings" }
 multiplatform-settings-test = { module = "com.russhwolf:multiplatform-settings-test", version.ref = "multiplatform-settings" }
 firebase-config = { module = "dev.gitlive:firebase-config", version.ref = "firebase-gitlive" }
+firebase-analytics = { module = "dev.gitlive:firebase-analytics", version.ref = "firebase-gitlive" }
+firebase-crashlytics = { module = "dev.gitlive:firebase-crashlytics", version.ref = "firebase-gitlive" }
 compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "compottie" }
 compottie-resources = { module = "io.github.alexzhirkevich:compottie-resources", version.ref = "compottie" }
 
@@ -38,3 +40,4 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 googleServices = { id = "com.google.gms.google-services", version.ref = "google-services" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+firebaseCrashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.3" }

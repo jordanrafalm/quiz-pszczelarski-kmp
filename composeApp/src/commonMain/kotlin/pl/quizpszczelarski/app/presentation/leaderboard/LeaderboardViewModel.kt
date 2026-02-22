@@ -5,6 +5,7 @@ import pl.quizpszczelarski.app.presentation.base.MviViewModel
 import pl.quizpszczelarski.shared.domain.model.LeaderboardEntry
 import pl.quizpszczelarski.shared.domain.repository.LeaderboardRepository
 import pl.quizpszczelarski.shared.domain.repository.UserRepository
+import pl.quizpszczelarski.shared.domain.service.AnalyticsService
 
 /**
  * ViewModel for the Leaderboard screen.
@@ -14,6 +15,7 @@ class LeaderboardViewModel(
     private val leaderboardRepository: LeaderboardRepository,
     private val currentUid: String?,
     private val userRepository: UserRepository,
+    private val analyticsService: AnalyticsService,
 ) : MviViewModel<LeaderboardState, LeaderboardIntent, LeaderboardEffect>(
     LeaderboardState(isLoading = true),
 ) {
@@ -40,6 +42,10 @@ class LeaderboardViewModel(
                         )
                     }
             } catch (_: Exception) {
+                analyticsService.recordNonFatal(
+                    Exception("Failed to load leaderboard"),
+                    mapOf("context" to "observe_leaderboard"),
+                )
                 onIntent(
                     ShowLoadError("Nie udało się załadować rankingu"),
                 )
