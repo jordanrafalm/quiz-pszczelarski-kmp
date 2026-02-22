@@ -24,4 +24,13 @@ interface SettingsRepository {
 
     /** Mark that user has set a custom nickname. */
     suspend fun setHasCustomNickname(value: Boolean)
+
+    /** Toggle notifications on/off. */
+    suspend fun setNotificationsEnabled(enabled: Boolean)
+
+    /** How many times the app has been launched. */
+    fun getAppLaunchCount(): Int
+
+    /** Increment app launch counter by 1. */
+    suspend fun incrementAppLaunchCount()
 }

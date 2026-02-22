@@ -20,6 +20,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             api(libs.firebase.auth)
             api(libs.firebase.firestore)
+            api(libs.firebase.config)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.sqldelight.coroutines)
             api(libs.multiplatform.settings)

@@ -2,6 +2,7 @@ package pl.quizpszczelarski.app
 
 import androidx.compose.ui.window.ComposeUIViewController
 import pl.quizpszczelarski.app.platform.IosHaptics
+import pl.quizpszczelarski.app.platform.IosNotificationScheduler
 import pl.quizpszczelarski.app.platform.IosSplashSoundPlayer
 import pl.quizpszczelarski.shared.data.local.DatabaseDriverFactory
 import pl.quizpszczelarski.shared.data.settings.SettingsFactory
@@ -18,5 +19,6 @@ fun MainViewController() = ComposeUIViewController(
         settingsFactory = SettingsFactory(),
         haptics = IosHaptics(),
         splashSoundPlayer = IosSplashSoundPlayer(),
+        notificationScheduler = IosNotificationScheduler(),
     )
 }

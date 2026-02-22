@@ -36,6 +36,8 @@ fun ActionCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     iconBackgroundColor: Color = MaterialTheme.colorScheme.primary,
+    /** Optional badge shown below the description (e.g. "🆕 Nowe pytania!"). */
+    badge: @Composable (() -> Unit)? = null,
 ) {
     val spacing = AppTheme.spacing
 
@@ -77,6 +79,9 @@ fun ActionCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (badge != null) {
+                    badge()
+                }
             }
         }
     }

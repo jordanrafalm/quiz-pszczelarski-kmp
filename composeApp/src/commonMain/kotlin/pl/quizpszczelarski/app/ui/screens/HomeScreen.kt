@@ -1,6 +1,6 @@
 package pl.quizpszczelarski.app.ui.screens
 
-import androidx.activity.compose.BackHandler
+import pl.quizpszczelarski.app.platform.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -171,6 +171,25 @@ fun HomeScreen(
                             text = "♪",
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.alpha(if (settingsState.soundEnabled) 1f else 0.4f),
+                        )
+                    }
+
+                    // Notifications toggle
+                    IconButton(
+                        onClick = { onIntent(HomeIntent.ToggleNotifications) },
+                        modifier = Modifier.size(40.dp),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = if (settingsState.notificationsEnabled) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
+                        ),
+                    ) {
+                        Text(
+                            text = if (settingsState.notificationsEnabled) "🔔" else "🔕",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.alpha(if (settingsState.notificationsEnabled) 1f else 0.4f),
                         )
                     }
                 }
@@ -352,6 +371,16 @@ private fun HomeMainContent(
                 icon = { Text("🎮", style = MaterialTheme.typography.headlineSmall) },
                 onClick = { if (!easterEggActive) onIntent(HomeIntent.StartQuiz) },
                 iconBackgroundColor = MaterialTheme.colorScheme.primary,
+                badge = if (state.newQuestionsAvailable) {
+                    {
+                        Spacer(modifier = Modifier.height(spacing.xs))
+                        Text(
+                            text = "🆕 Nowe pytania!",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                } else null,
             )
 
             Spacer(modifier = Modifier.height(spacing.lg))

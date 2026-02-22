@@ -1,6 +1,6 @@
 package pl.quizpszczelarski.app.navigation
 
-import androidx.activity.compose.BackHandler
+import pl.quizpszczelarski.app.platform.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,9 +31,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import pl.quizpszczelarski.app.platform.LocalHaptics
+import pl.quizpszczelarski.app.platform.LocalNotificationScheduler
 import pl.quizpszczelarski.app.platform.LocalSettingsState
 import pl.quizpszczelarski.app.platform.LocalSoundPlayer
 import pl.quizpszczelarski.app.platform.SplashSoundPlayer
+import pl.quizpszczelarski.app.platform.getAppVersion
+import pl.quizpszczelarski.app.platform.isVersionOutdated
 import pl.quizpszczelarski.app.presentation.home.HomeEffect
 import pl.quizpszczelarski.app.presentation.home.HomeViewModel
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardEffect
@@ -42,11 +45,13 @@ import pl.quizpszczelarski.app.presentation.quiz.QuizEffect
 import pl.quizpszczelarski.app.presentation.quiz.QuizViewModel
 import pl.quizpszczelarski.app.presentation.result.ResultEffect
 import pl.quizpszczelarski.app.presentation.result.ResultViewModel
+import pl.quizpszczelarski.app.ui.screens.ForceUpdateScreen
 import pl.quizpszczelarski.app.ui.screens.HomeScreen
 import pl.quizpszczelarski.app.ui.screens.LeaderboardScreen
 import pl.quizpszczelarski.app.ui.screens.QuizScreen
 import pl.quizpszczelarski.app.ui.screens.ResultScreen
 import pl.quizpszczelarski.app.ui.screens.SplashScreen
+import pl.quizpszczelarski.shared.data.config.FirebaseAppConfigRepository
 import pl.quizpszczelarski.shared.data.leaderboard.FirebaseLeaderboardRepository
 import pl.quizpszczelarski.shared.data.local.DatabaseDriverFactory
 import pl.quizpszczelarski.shared.data.local.SqlDelightPendingScoreDataSource
@@ -57,6 +62,7 @@ import pl.quizpszczelarski.shared.data.remote.FirestoreQuestionsDataSource
 import pl.quizpszczelarski.shared.data.settings.SettingsFactory
 import pl.quizpszczelarski.shared.data.settings.SettingsRepositoryImpl
 import pl.quizpszczelarski.shared.data.user.FirebaseUserRepository
+import pl.quizpszczelarski.shared.domain.model.AppConfig
 import pl.quizpszczelarski.shared.domain.usecase.EnsureUserUseCase
 import pl.quizpszczelarski.shared.domain.usecase.GetRandomQuestionsUseCase
 import pl.quizpszczelarski.shared.domain.usecase.SubmitScoreUseCase
@@ -79,6 +85,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                 is Route.Quiz -> listOf("Quiz", route.level, route.questionCount)
                 is Route.Result -> listOf("Result", route.score, route.total)
                 is Route.Leaderboard -> listOf("Leaderboard")
+                is Route.ForceUpdate -> listOf("ForceUpdate")
             }
         },
         restore = { list ->
@@ -88,6 +95,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                 "Quiz" -> Route.Quiz(list[1] as String, list[2] as Int)
                 "Result" -> Route.Result(list[1] as Int, list[2] as Int)
                 "Leaderboard" -> Route.Leaderboard
+                "ForceUpdate" -> Route.ForceUpdate
                 else -> Route.Home // fallback
             }
         }
@@ -116,7 +124,12 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
     val settingsState by settingsRepo.getSettingsFlow()
         .collectAsState(initial = settingsRepo.getSettings())
 
+    // Remote config
+    val configRepository = remember { FirebaseAppConfigRepository() }
+    var appConfig by remember { mutableStateOf(AppConfig()) }
+
     val haptics = LocalHaptics.current
+    val notificationScheduler = LocalNotificationScheduler.current
 
     // Use cases
     val getRandomQuestions = remember { GetRandomQuestionsUseCase(questionRepository) }
@@ -143,7 +156,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
         LocalSoundPlayer provides splashSoundPlayer,
     ) {
         // Handle system back button/gesture
-        BackHandler(enabled = currentRoute !is Route.Splash && currentRoute !is Route.Home) {
+        BackHandler(enabled = currentRoute !is Route.Splash && currentRoute !is Route.Home && currentRoute !is Route.ForceUpdate) {
             when (currentRoute) {
                 is Route.Quiz -> currentRoute = Route.Home
                 is Route.Result -> currentRoute = Route.Home
@@ -177,8 +190,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                             targetState is Route.Home -> AppTransitions.screenTransitionBack()
                             else -> AppTransitions.screenTransition()
                         }
-                    },
-                    label = "ScreenTransition",
+                    },                    label = "ScreenTransition",
                 ) { route ->
                     when (route) {
                         Route.Splash -> {
@@ -208,17 +220,30 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                         questionRepository.syncQuestionsIfNeeded()
                                     } catch (_: Exception) { }
                                 }
+                                // Background: fetch remote config (parallel, 2s timeout)
+                                val configJob = async {
+                                    try {
+                                        withTimeoutOrNull(2000L) {
+                                            appConfig = configRepository.fetchConfig()
+                                        }
+                                    } catch (_: Exception) { }
+                                }
+
+                                // Increment launch count on every splash
+                                settingsRepo.incrementAppLaunchCount()
+                                val launchCount = settingsRepo.getAppLaunchCount()
+
                                 // Ensure splash shows for at least 3s, but don't block forever
                                 delay(3000L)
                                 // Give auth and sync a few more seconds, then proceed regardless
                                 withTimeoutOrNull(4000L) { bootstrapJob.await() }
                                 withTimeoutOrNull(2000L) { syncJob.await() }
+                                withTimeoutOrNull(500L) { configJob.await() }
 
                                 // Release sound player
                                 splashSoundPlayer?.release()
 
                                 // Submit pending scores from previous offline sessions.
-                                // Uses coroutineScope (not LaunchedEffect) so it survives route change.
                                 val flushUid = currentUid
                                 if (flushUid != null) {
                                     coroutineScope.launch {
@@ -228,12 +253,34 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                     }
                                 }
 
-                                currentRoute = Route.Home
+                                // Notification permission — request on the 2nd launch
+                                if (launchCount == 2 && settingsState.notificationsEnabled) {
+                                    coroutineScope.launch {
+                                        try {
+                                            val granted = notificationScheduler.requestPermission()
+                                            if (granted) notificationScheduler.scheduleQuizReminder()
+                                            else settingsRepo.setNotificationsEnabled(false)
+                                        } catch (_: Exception) { }
+                                    }
+                                }
+
+                                // Refresh notification batch on iOS (no-op on Android)
+                                if (launchCount > 2 && settingsState.notificationsEnabled &&
+                                    notificationScheduler.isPermissionGranted()
+                                ) {
+                                    notificationScheduler.scheduleQuizReminder()
+                                }
+
+                                // Force update check
+                                val config = appConfig
+                                val needsUpdate = config.forceUpdateRequired &&
+                                    isVersionOutdated(getAppVersion(), config.forceUpdateMinVersion)
+                                currentRoute = if (needsUpdate) Route.ForceUpdate else Route.Home
                             }
                         }
 
                         Route.Home -> {
-                            val vm = remember { HomeViewModel() }
+                            val vm = remember { HomeViewModel(newQuestionsAvailable = appConfig.newQuestionsAvailable) }
                             DisposableEffect(Unit) { onDispose { vm.onCleared() } }
                             val state by vm.state.collectAsState()
 
@@ -262,6 +309,23 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                         HomeEffect.ToggleSound -> {
                                             coroutineScope.launch {
                                                 settingsRepo.setSoundEnabled(!settingsState.soundEnabled)
+                                            }
+                                        }
+                                        HomeEffect.ToggleNotifications -> {
+                                            coroutineScope.launch {
+                                                val newEnabled = !settingsState.notificationsEnabled
+                                                settingsRepo.setNotificationsEnabled(newEnabled)
+                                                if (newEnabled) {
+                                                    val granted = notificationScheduler.requestPermission()
+                                                    if (granted) {
+                                                        notificationScheduler.scheduleQuizReminder()
+                                                    } else {
+                                                        // Permission denied — revert setting
+                                                        settingsRepo.setNotificationsEnabled(false)
+                                                    }
+                                                } else {
+                                                    notificationScheduler.cancelQuizReminder()
+                                                }
                                             }
                                         }
                                     }
@@ -363,6 +427,10 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                             }
 
                             LeaderboardScreen(state = state, onIntent = vm::onIntent)
+                        }
+
+                        Route.ForceUpdate -> {
+                            ForceUpdateScreen()
                         }
                     }
                 }

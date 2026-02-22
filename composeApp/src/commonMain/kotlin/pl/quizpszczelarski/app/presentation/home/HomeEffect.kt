@@ -13,4 +13,6 @@ sealed interface HomeEffect {
     data object ToggleHaptics : HomeEffect
     /** Toggle sound on/off — handled by AppNavigation via SettingsRepository. */
     data object ToggleSound : HomeEffect
+    /** Toggle notifications on/off — handled by AppNavigation via SettingsRepository + NotificationScheduler. */
+    data object ToggleNotifications : HomeEffect
 }

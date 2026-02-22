@@ -11,6 +11,7 @@
 		2152ACDE2B03E5B400DE6E51 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2152ACDD2B03E5B400DE6E51 /* Assets.xcassets */; };
 		A1B2C3D72B03E5B200DE6E51 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D52B03E5B200DE6E51 /* FirebaseAuth */; };
 		A1B2C3D82B03E5B200DE6E51 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D62B03E5B200DE6E51 /* FirebaseFirestore */; };
+		A1B2C3DB2B03E5B200DE6E51 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3DC2B03E5B200DE6E51 /* FirebaseRemoteConfig */; };
 		A1B2C3DA2B03E5B200DE6E51 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D92B03E5B200DE6E51 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
@@ -28,6 +29,7 @@
 			files = (
 				A1B2C3D72B03E5B200DE6E51 /* FirebaseAuth in Frameworks */,
 				A1B2C3D82B03E5B200DE6E51 /* FirebaseFirestore in Frameworks */,
+				A1B2C3DB2B03E5B200DE6E51 /* FirebaseRemoteConfig in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,6 +82,7 @@
 			packageProductDependencies = (
 				A1B2C3D52B03E5B200DE6E51 /* FirebaseAuth */,
 				A1B2C3D62B03E5B200DE6E51 /* FirebaseFirestore */,
+				A1B2C3DC2B03E5B200DE6E51 /* FirebaseRemoteConfig */,
 			);
 			productName = iosApp;
 			productReference = 2152ACD62B03E5B200DE6E51 /* iosApp.app */;
@@ -138,6 +141,7 @@
 			);
 			inputPaths = (
 			);
+			alwaysOutOfDate = 1;
 			name = "Compile Kotlin Framework";
 			outputFileListPaths = (
 			);
@@ -225,6 +229,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Quiz Pszczelarski";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.trivia-games";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -259,6 +264,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Quiz Pszczelarski";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.trivia-games";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -326,8 +332,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A1B2C3D42B03E5B200DE6E51 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
-		};
-/* End XCSwiftPackageProductDependency section */
+		};		A1B2C3DC2B03E5B200DE6E51 /* FirebaseRemoteConfig */ = {
+				isa = XCSwiftPackageProductDependency;
+				package = A1B2C3D42B03E5B200DE6E51 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+				productName = FirebaseRemoteConfig;
+			};/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2152ACCE2B03E5B200DE6E51 /* Project object */;
 }

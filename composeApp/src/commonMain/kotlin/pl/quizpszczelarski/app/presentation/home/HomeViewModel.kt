@@ -7,7 +7,9 @@ import pl.quizpszczelarski.app.presentation.base.MviViewModel
  * ViewModel for the Home screen.
  * Home has no complex state — mainly emits navigation effects.
  */
-class HomeViewModel : MviViewModel<HomeState, HomeIntent, HomeEffect>(HomeState()) {
+class HomeViewModel(
+    newQuestionsAvailable: Boolean = false,
+) : MviViewModel<HomeState, HomeIntent, HomeEffect>(HomeState(newQuestionsAvailable = newQuestionsAvailable)) {
 
     override fun reduce(state: HomeState, intent: HomeIntent): HomeState {
         when (intent) {
@@ -24,6 +26,9 @@ class HomeViewModel : MviViewModel<HomeState, HomeIntent, HomeEffect>(HomeState(
             }
             HomeIntent.ToggleSound -> {
                 emitEffect(HomeEffect.ToggleSound)
+            }
+            HomeIntent.ToggleNotifications -> {
+                emitEffect(HomeEffect.ToggleNotifications)
             }
             is HomeIntent.SelectLevel -> {
                 emitEffect(HomeEffect.PlayHaptic(ImpactType.Medium))

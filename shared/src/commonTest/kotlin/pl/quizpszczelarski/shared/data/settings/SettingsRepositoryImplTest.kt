@@ -77,4 +77,49 @@ class SettingsRepositoryImplTest {
         assertTrue(repo.getSettings().hapticsEnabled)
         assertFalse(repo.getSettings().soundEnabled)
     }
+
+    @Test
+    fun `default settings have notifications enabled`() {
+        val repo = createRepo()
+        assertTrue(repo.getSettings().notificationsEnabled)
+    }
+
+    @Test
+    fun `setNotificationsEnabled persists and emits new state`() = runTest {
+        val repo = createRepo()
+
+        repo.setNotificationsEnabled(false)
+
+        assertFalse(repo.getSettings().notificationsEnabled)
+        assertFalse(repo.getSettingsFlow().first().notificationsEnabled)
+    }
+
+    @Test
+    fun `initial app launch count is zero`() {
+        val repo = createRepo()
+        assertEquals(0, repo.getAppLaunchCount())
+    }
+
+    @Test
+    fun `incrementAppLaunchCount increments by one each call`() = runTest {
+        val repo = createRepo()
+
+        repo.incrementAppLaunchCount()
+        assertEquals(1, repo.getAppLaunchCount())
+
+        repo.incrementAppLaunchCount()
+        assertEquals(2, repo.getAppLaunchCount())
+    }
+
+    @Test
+    fun `launch count survives repo re-creation`() = runTest {
+        val mapSettings = MapSettings()
+        val repo1 = createRepo(mapSettings)
+
+        repo1.incrementAppLaunchCount()
+        repo1.incrementAppLaunchCount()
+
+        val repo2 = createRepo(mapSettings)
+        assertEquals(2, repo2.getAppLaunchCount())
+    }
 }

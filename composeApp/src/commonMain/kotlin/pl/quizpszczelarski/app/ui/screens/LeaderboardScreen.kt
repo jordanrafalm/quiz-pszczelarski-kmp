@@ -1,6 +1,6 @@
 package pl.quizpszczelarski.app.ui.screens
 
-import androidx.activity.compose.BackHandler
+import pl.quizpszczelarski.app.platform.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween

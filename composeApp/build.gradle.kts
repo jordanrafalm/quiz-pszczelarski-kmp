@@ -20,6 +20,7 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
             linkerOpts("-lsqlite3")
+            binaryOption("bundleId", "pl.quizpszczelarski.app.ComposeApp")
         }
     }
 
@@ -53,4 +54,16 @@ android {
         versionCode = 1
         versionName = "0.1.0"
     }
+
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
