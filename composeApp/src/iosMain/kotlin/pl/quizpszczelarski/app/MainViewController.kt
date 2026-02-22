@@ -1,6 +1,7 @@
 package pl.quizpszczelarski.app
 
 import androidx.compose.ui.window.ComposeUIViewController
+import pl.quizpszczelarski.shared.data.local.DatabaseDriverFactory
 
 fun MainViewController() = ComposeUIViewController(
     configure = {
@@ -8,4 +9,4 @@ fun MainViewController() = ComposeUIViewController(
         // This key cannot be added via GENERATE_INFOPLIST_FILE in Xcode
         enforceStrictPlistSanityCheck = false
     }
-) { App() }
+) { App(driverFactory = DatabaseDriverFactory()) }

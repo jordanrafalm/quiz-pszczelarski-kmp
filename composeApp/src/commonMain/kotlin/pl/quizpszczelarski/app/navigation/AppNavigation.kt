@@ -4,8 +4,13 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -13,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import dev.gitlive.firebase.Firebase
@@ -20,6 +26,8 @@ import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import pl.quizpszczelarski.app.presentation.home.HomeEffect
 import pl.quizpszczelarski.app.presentation.home.HomeViewModel
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardEffect
@@ -34,11 +42,17 @@ import pl.quizpszczelarski.app.ui.screens.QuizScreen
 import pl.quizpszczelarski.app.ui.screens.ResultScreen
 import pl.quizpszczelarski.app.ui.screens.SplashScreen
 import pl.quizpszczelarski.shared.data.leaderboard.FirebaseLeaderboardRepository
-import pl.quizpszczelarski.shared.data.questions.FirebaseQuestionsRepository
+import pl.quizpszczelarski.shared.data.local.DatabaseDriverFactory
+import pl.quizpszczelarski.shared.data.local.SqlDelightPendingScoreDataSource
+import pl.quizpszczelarski.shared.data.local.SqlDelightQuestionsDataSource
+import pl.quizpszczelarski.shared.data.local.db.QuizDatabase
+import pl.quizpszczelarski.shared.data.questions.CachingQuestionsRepository
+import pl.quizpszczelarski.shared.data.remote.FirestoreQuestionsDataSource
 import pl.quizpszczelarski.shared.data.user.FirebaseUserRepository
 import pl.quizpszczelarski.shared.domain.usecase.EnsureUserUseCase
 import pl.quizpszczelarski.shared.domain.usecase.GetRandomQuestionsUseCase
 import pl.quizpszczelarski.shared.domain.usecase.SubmitScoreUseCase
+import pl.quizpszczelarski.shared.domain.usecase.flushPendingScores
 
 /**
  * Simple state-based navigation using [AnimatedContent].
@@ -47,15 +61,22 @@ import pl.quizpszczelarski.shared.domain.usecase.SubmitScoreUseCase
  * ViewModels are created directly (no DI yet — Koin in Phase 3+).
  */
 @Composable
-fun AppNavigation() {
+fun AppNavigation(driverFactory: DatabaseDriverFactory) {
     var currentRoute by remember { mutableStateOf<Route>(Route.Splash) }
 
     // Firebase instances (GitLive singletons)
     val auth = remember { Firebase.auth }
     val firestore = remember { Firebase.firestore }
 
+    // Database + data sources
+    val database = remember { QuizDatabase(driverFactory.create()) }
+    val localDataSource = remember { SqlDelightQuestionsDataSource(database) }
+    val remoteDataSource = remember { FirestoreQuestionsDataSource(firestore) }
+    val pendingScoreDataSource = remember { SqlDelightPendingScoreDataSource(database) }
+
     // Repositories
-    val questionRepository = remember { FirebaseQuestionsRepository(firestore) }
+    val questionRepository = remember { CachingQuestionsRepository(localDataSource, remoteDataSource) }
+    val questionSyncService: pl.quizpszczelarski.shared.domain.repository.QuestionSyncService = questionRepository
     val userRepository = remember { FirebaseUserRepository(auth, firestore) }
     val leaderboardRepository = remember { FirebaseLeaderboardRepository(firestore) }
 
@@ -67,12 +88,36 @@ fun AppNavigation() {
     // User session state (shared across screens)
     var currentUid by remember { mutableStateOf<String?>(null) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding(),
-    ) {
+    // Snackbar state (shared across all screens)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    /** Show a snackbar message from any screen. */
+    fun showSnackbar(message: String) {
+        coroutineScope.launch {
+            snackbarHostState.currentSnackbarData?.dismiss()
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                Snackbar(
+                    snackbarData = data,
+                    containerColor = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                )
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .statusBarsPadding(),
+        ) {
         AnimatedContent(targetState = currentRoute) { route ->
             when (route) {
                 Route.Splash -> {
@@ -88,9 +133,29 @@ fun AppNavigation() {
                                 // Proceed without auth (offline / error fallback)
                             }
                         }
-                        // Ensure splash shows for at least 2s
+                        // Background: sync questions while splash shows
+                        val syncJob = async {
+                            try {
+                                questionRepository.syncQuestionsIfNeeded()
+                            } catch (_: Exception) { }
+                        }
+                        // Ensure splash shows for at least 2s, but don't block forever
                         delay(2000L)
-                        bootstrapJob.await()
+                        // Give auth and sync a few more seconds, then proceed regardless
+                        withTimeoutOrNull(4000L) { bootstrapJob.await() }
+                        withTimeoutOrNull(2000L) { syncJob.await() }
+
+                        // Submit pending scores from previous offline sessions.
+                        // Uses coroutineScope (not LaunchedEffect) so it survives route change.
+                        val flushUid = currentUid
+                        if (flushUid != null) {
+                            coroutineScope.launch {
+                                try {
+                                    flushPendingScores(flushUid, submitScore, pendingScoreDataSource)
+                                } catch (_: Exception) { }
+                            }
+                        }
+
                         currentRoute = Route.Home
                     }
                 }
@@ -113,7 +178,7 @@ fun AppNavigation() {
                 }
 
                 Route.Quiz -> {
-                    val vm = remember { QuizViewModel(getRandomQuestions) }
+                    val vm = remember { QuizViewModel(getRandomQuestions, questionSyncService) }
                     DisposableEffect(Unit) { onDispose { vm.onCleared() } }
                     val state by vm.state.collectAsState()
 
@@ -125,6 +190,13 @@ fun AppNavigation() {
                                         score = effect.score,
                                         total = effect.total,
                                     )
+                                }
+                                is QuizEffect.ShowSnackbar -> {
+                                    showSnackbar(effect.message)
+                                }
+                                is QuizEffect.NoQuestionsAvailable -> {
+                                    currentRoute = Route.Home
+                                    showSnackbar("Połącz się z internetem, aby pobrać pytania")
                                 }
                             }
                         }
@@ -140,6 +212,7 @@ fun AppNavigation() {
                             totalQuestions = route.total,
                             submitScore = submitScore,
                             uid = currentUid,
+                            pendingScoreDataSource = pendingScoreDataSource,
                         )
                     }
                     DisposableEffect(Unit) { onDispose { vm.onCleared() } }
@@ -150,7 +223,9 @@ fun AppNavigation() {
                             when (effect) {
                                 ResultEffect.NavigateToQuiz -> currentRoute = Route.Quiz
                                 ResultEffect.NavigateToLeaderboard -> currentRoute = Route.Leaderboard
-                                is ResultEffect.ShowError -> { /* score error is non-blocking */ }
+                                is ResultEffect.ShowError -> {
+                                    showSnackbar(effect.message)
+                                }
                             }
                         }
                     }
@@ -179,6 +254,7 @@ fun AppNavigation() {
                     LeaderboardScreen(state = state, onIntent = vm::onIntent)
                 }
             }
+        }
         }
     }
 }

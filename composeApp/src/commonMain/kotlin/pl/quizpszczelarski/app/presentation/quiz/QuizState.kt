@@ -11,6 +11,8 @@ data class QuizState(
     val selectedAnswerIndex: Int? = null,
     val score: Int = 0,
     val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false,
+    val isOffline: Boolean = false,
     val errorMessage: String? = null,
 ) {
     val currentQuestion: Question? get() = questions.getOrNull(currentQuestionIndex)

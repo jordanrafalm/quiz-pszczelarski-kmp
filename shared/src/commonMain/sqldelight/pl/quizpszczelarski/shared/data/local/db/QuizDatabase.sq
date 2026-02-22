@@ -1,0 +1,99 @@
+-- Questions table — mirrors Firestore 'questions' document structure.
+CREATE TABLE QuestionEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    text TEXT NOT NULL,
+    options TEXT NOT NULL,
+    correctAnswer INTEGER NOT NULL DEFAULT 0,
+    category TEXT NOT NULL DEFAULT '',
+    level TEXT NOT NULL DEFAULT '',
+    infotip TEXT NOT NULL DEFAULT '',
+    active INTEGER NOT NULL DEFAULT 1,
+    type TEXT NOT NULL DEFAULT 'SINGLE',
+    updatedAt INTEGER NOT NULL DEFAULT 0
+);
+
+-- Sync metadata key-value store.
+CREATE TABLE SyncMeta (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+-- Questions queries --
+
+selectActiveQuestions:
+SELECT * FROM QuestionEntity
+WHERE active = 1
+ORDER BY id;
+
+selectActiveByLevel:
+SELECT * FROM QuestionEntity
+WHERE active = 1 AND level = ?
+ORDER BY id;
+
+selectActiveByCategory:
+SELECT * FROM QuestionEntity
+WHERE active = 1 AND category = ?
+ORDER BY id;
+
+selectActiveByLevelAndCategory:
+SELECT * FROM QuestionEntity
+WHERE active = 1 AND level = ? AND category = ?
+ORDER BY id;
+
+selectById:
+SELECT * FROM QuestionEntity
+WHERE id = ?;
+
+countActive:
+SELECT COUNT(*) FROM QuestionEntity
+WHERE active = 1;
+
+insertOrReplace:
+INSERT OR REPLACE INTO QuestionEntity (
+    id, text, options, correctAnswer, category, level, infotip, active, type, updatedAt
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteAll:
+DELETE FROM QuestionEntity;
+
+deleteById:
+DELETE FROM QuestionEntity
+WHERE id = ?;
+
+-- Sync meta queries --
+
+getSyncMeta:
+SELECT value FROM SyncMeta
+WHERE key = ?;
+
+setSyncMeta:
+INSERT OR REPLACE INTO SyncMeta (key, value)
+VALUES (?, ?);
+
+-- Pending scores table — stores quiz results when offline.
+CREATE TABLE PendingScore (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    uid TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    createdAt INTEGER NOT NULL
+);
+
+-- Pending score queries --
+
+selectAllPendingScores:
+SELECT * FROM PendingScore
+ORDER BY createdAt ASC;
+
+insertPendingScore:
+INSERT INTO PendingScore (uid, score, createdAt)
+VALUES (?, ?, ?);
+
+deletePendingScore:
+DELETE FROM PendingScore
+WHERE id = ?;
+
+deleteAllPendingScores:
+DELETE FROM PendingScore;
+
+countPendingScores:
+SELECT COUNT(*) FROM PendingScore;

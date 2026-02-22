@@ -5,11 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,6 +27,7 @@ import pl.quizpszczelarski.app.presentation.quiz.QuizState
 import pl.quizpszczelarski.app.ui.components.AnswerOption
 import pl.quizpszczelarski.app.ui.components.AnswerOptionState
 import pl.quizpszczelarski.app.ui.components.AppButton
+import pl.quizpszczelarski.app.ui.components.AppButtonVariant
 import pl.quizpszczelarski.app.ui.components.QuizProgressBar
 import pl.quizpszczelarski.app.ui.theme.AppTheme
 
@@ -58,14 +62,29 @@ fun QuizScreen(
             Column(
                 modifier = modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(horizontal = spacing.lg),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
+                    text = "⚠️",
+                    style = MaterialTheme.typography.displayMedium,
+                )
+
+                Spacer(modifier = Modifier.height(spacing.lg))
+
+                Text(
                     text = state.errorMessage,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.error,
+                )
+
+                Spacer(modifier = Modifier.height(spacing.xl))
+
+                AppButton(
+                    text = "Spróbuj ponownie",
+                    onClick = { onIntent(QuizIntent.RetryLoad) },
                 )
             }
         }
@@ -78,6 +97,48 @@ fun QuizScreen(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background),
             ) {
+                // Offline / refreshing indicator
+                if (state.isOffline) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .padding(horizontal = spacing.lg, vertical = spacing.sm),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "📡",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        Spacer(modifier = Modifier.width(spacing.sm))
+                        Text(
+                            text = "Tryb offline — używam zapisanych pytań",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    }
+                } else if (state.isRefreshing) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(horizontal = spacing.lg, vertical = spacing.sm),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(14.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                        Spacer(modifier = Modifier.width(spacing.sm))
+                        Text(
+                            text = "Synchronizacja pytań…",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(spacing.lg))
 
                 // Progress bar
