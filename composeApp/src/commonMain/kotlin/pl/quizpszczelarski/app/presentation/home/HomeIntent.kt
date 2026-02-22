@@ -6,4 +6,9 @@ package pl.quizpszczelarski.app.presentation.home
 sealed interface HomeIntent {
     data object StartQuiz : HomeIntent
     data object ViewLeaderboard : HomeIntent
+    data object ToggleHaptics : HomeIntent
+    data object ToggleSound : HomeIntent
+    data class SelectLevel(val level: String) : HomeIntent
+    data object BackFromLevelSelect : HomeIntent
+    data class SetQuestionCount(val count: Int) : HomeIntent
 }

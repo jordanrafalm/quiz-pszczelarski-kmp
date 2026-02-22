@@ -27,4 +27,9 @@ interface UserRepository {
      * Sets lastGameAt and lastGameScore.
      */
     suspend fun addScore(uid: String, delta: Int)
+
+    /**
+     * Updates the user's display nickname in Firestore.
+     */
+    suspend fun updateNickname(uid: String, newNickname: String)
 }

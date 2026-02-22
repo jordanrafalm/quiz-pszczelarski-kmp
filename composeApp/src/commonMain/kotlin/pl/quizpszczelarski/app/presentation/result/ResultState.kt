@@ -8,6 +8,8 @@ import kotlin.math.roundToInt
 data class ResultState(
     val score: Int = 0,
     val totalQuestions: Int = 0,
+    val showNicknamePrompt: Boolean = false,
+    val nicknameInput: String = "",
 ) {
     val percentage: Int
         get() = if (totalQuestions == 0) 0

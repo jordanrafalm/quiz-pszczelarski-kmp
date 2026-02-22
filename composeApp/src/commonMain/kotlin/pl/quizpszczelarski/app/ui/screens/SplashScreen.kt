@@ -5,32 +5,36 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
+import androidx.compose.foundation.Image
+import io.github.alexzhirkevich.compottie.Compottie
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import pl.quizpszczelarski.app.ui.theme.AppTheme
 
 /**
- * Splash screen — logo, title, subtitle. Auto-navigates after 2s.
+ * Splash screen — Lottie bee animation, title, subtitle. Auto-navigates after 3s.
  */
 @Composable
 fun SplashScreen(
-    onSplashFinished: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = AppTheme.spacing
 
-    LaunchedEffect(Unit) {
-        delay(2000L)
-        onSplashFinished()
+    // Lottie composition from compose resources
+    val composition by rememberLottieComposition {
+        val jsonBytes = quiz_pszczelarski_kmp.composeapp.generated.resources.Res.readBytes("files/bee_animation.json")
+        LottieCompositionSpec.JsonString(jsonBytes.decodeToString())
     }
 
     Column(
@@ -40,12 +44,14 @@ fun SplashScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Placeholder hexagon icon — using emoji until custom icon is added
-        Text(
-            text = "🐝",
-            style = MaterialTheme.typography.displayLarge,
-            modifier = Modifier.size(80.dp),
-            textAlign = TextAlign.Center,
+        // Bee Lottie animation — full width
+        Image(
+            painter = rememberLottiePainter(
+                composition = composition,
+                iterations = Compottie.IterateForever,
+            ),
+            contentDescription = "Bee animation",
+            modifier = Modifier.fillMaxWidth(),
         )
 
         Spacer(modifier = Modifier.height(spacing.xl))

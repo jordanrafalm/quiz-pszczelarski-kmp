@@ -12,6 +12,8 @@ data class LeaderboardState(
     val userRank: Int = 0,
     val userScore: Int = 0,
     val errorMessage: String? = null,
+    val isEditingNickname: Boolean = false,
+    val nicknameInput: String = "",
 ) {
     val tabs: List<String> = listOf("All-time", "Weekly")
 }

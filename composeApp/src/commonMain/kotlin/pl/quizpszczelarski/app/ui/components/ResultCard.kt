@@ -1,5 +1,8 @@
 package pl.quizpszczelarski.app.ui.components
 
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +14,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,6 +34,18 @@ fun ResultCard(
 ) {
     val spacing = AppTheme.spacing
 
+    // Animated count-up for score and percentage
+    val animatedScore by animateIntAsState(
+        targetValue = score,
+        animationSpec = tween(durationMillis = 800, easing = EaseOutCubic),
+        label = "ScoreCountUp",
+    )
+    val animatedPercentage by animateIntAsState(
+        targetValue = percentage,
+        animationSpec = tween(durationMillis = 800, delayMillis = 200, easing = EaseOutCubic),
+        label = "PercentageCountUp",
+    )
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
@@ -46,13 +62,13 @@ fun ResultCard(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "$score/$totalQuestions",
+                text = "$animatedScore/$totalQuestions",
                 style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.height(spacing.sm))
             Text(
-                text = "$percentage%",
+                text = "$animatedPercentage%",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
             )

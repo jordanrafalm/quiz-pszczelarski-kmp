@@ -22,6 +22,8 @@ kotlin {
             api(libs.firebase.firestore)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.sqldelight.coroutines)
+            api(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.coroutines)
         }
         androidMain.dependencies {
             implementation(libs.sqldelight.android.driver)
@@ -32,6 +34,7 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.multiplatform.settings.test)
         }
     }
 }

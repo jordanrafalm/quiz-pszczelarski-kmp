@@ -40,8 +40,9 @@ abstract class MviViewModel<S, I, E>(initialState: S) {
     }
 
     /**
-     * Pure reducer: given current state + intent, produces new state.
-     * No side effects allowed here — use [emitEffect] or [scope] for async work.
+     * Reducer: given current state + intent, produces new state.
+     * May call [emitEffect] for one-off side effects (navigation, haptics, etc.).
+     * For async work, use [scope] instead.
      */
     protected abstract fun reduce(state: S, intent: I): S
 

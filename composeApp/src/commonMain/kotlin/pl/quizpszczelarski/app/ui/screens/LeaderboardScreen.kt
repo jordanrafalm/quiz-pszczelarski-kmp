@@ -1,23 +1,33 @@
 package pl.quizpszczelarski.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardIntent
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardState
+import pl.quizpszczelarski.app.ui.components.AppButton
+import pl.quizpszczelarski.app.ui.components.AppButtonVariant
 import pl.quizpszczelarski.app.ui.components.LeaderboardEntryRow
 import pl.quizpszczelarski.app.ui.components.QuizTopBar
 import pl.quizpszczelarski.app.ui.components.TabSelector
@@ -101,12 +111,75 @@ fun LeaderboardScreen(
                         items = state.entries,
                         key = { "${it.uid}-${it.rank}" },
                     ) { entry ->
-                        LeaderboardEntryRow(
-                            rank = entry.rank,
-                            name = entry.name,
-                            score = entry.score,
-                            isCurrentUser = entry.isCurrentUser,
-                        )
+                        if (entry.isCurrentUser) {
+                            // Current user row — tappable to edit nickname
+                            Box(
+                                modifier = Modifier.clickable {
+                                    onIntent(LeaderboardIntent.StartEditNickname)
+                                },
+                            ) {
+                                LeaderboardEntryRow(
+                                    rank = entry.rank,
+                                    name = entry.name,
+                                    score = entry.score,
+                                    isCurrentUser = true,
+                                )
+                            }
+
+                            // Inline edit field
+                            if (state.isEditingNickname) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = spacing.sm),
+                                    shape = MaterialTheme.shapes.medium,
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surface,
+                                    ),
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .padding(spacing.md),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        OutlinedTextField(
+                                            value = state.nicknameInput,
+                                            onValueChange = {
+                                                onIntent(LeaderboardIntent.UpdateNicknameInput(it))
+                                            },
+                                            singleLine = true,
+                                            modifier = Modifier.weight(1f),
+                                            label = { Text("Nowy nick") },
+                                        )
+                                        Spacer(modifier = Modifier.width(spacing.sm))
+                                        AppButton(
+                                            text = "OK",
+                                            onClick = {
+                                                onIntent(LeaderboardIntent.ConfirmNickname)
+                                            },
+                                            enabled = state.nicknameInput.trim().isNotEmpty(),
+                                            modifier = Modifier.width(80.dp),
+                                        )
+                                        Spacer(modifier = Modifier.width(spacing.sm))
+                                        AppButton(
+                                            text = "\u2715",
+                                            onClick = {
+                                                onIntent(LeaderboardIntent.CancelEditNickname)
+                                            },
+                                            variant = AppButtonVariant.Secondary,
+                                            modifier = Modifier.width(48.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            LeaderboardEntryRow(
+                                rank = entry.rank,
+                                name = entry.name,
+                                score = entry.score,
+                                isCurrentUser = false,
+                            )
+                        }
                         Spacer(modifier = Modifier.height(spacing.sm))
                     }
                 }

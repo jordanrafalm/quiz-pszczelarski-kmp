@@ -5,4 +5,5 @@ package pl.quizpszczelarski.app.presentation.leaderboard
  */
 sealed interface LeaderboardEffect {
     data object NavigateBack : LeaderboardEffect
+    data class ShowSnackbar(val message: String) : LeaderboardEffect
 }

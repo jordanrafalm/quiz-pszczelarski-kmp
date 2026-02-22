@@ -1,8 +1,13 @@
 package pl.quizpszczelarski.app.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,10 +20,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Box
 import pl.quizpszczelarski.app.ui.theme.AppTheme
@@ -67,15 +75,49 @@ fun AnswerOption(
         else -> MaterialTheme.colorScheme.outline
     }
 
+    // Animated colors for smooth transitions
+    val animatedBorderColor by animateColorAsState(
+        targetValue = borderColor,
+        animationSpec = tween(durationMillis = 250),
+        label = "AnswerBorderColor",
+    )
+    val animatedBackgroundColor by animateColorAsState(
+        targetValue = backgroundColor,
+        animationSpec = tween(durationMillis = 250),
+        label = "AnswerBgColor",
+    )
+    val animatedRadioColor by animateColorAsState(
+        targetValue = radioColor,
+        animationSpec = tween(durationMillis = 250),
+        label = "AnswerRadioColor",
+    )
+
     val contentAlpha = if (state == AnswerOptionState.Disabled) 0.5f else 1f
+
+    // Press scale feedback
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = tween(durationMillis = 100),
+        label = "AnswerScale",
+    )
 
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(enabled = enabled && state != AnswerOptionState.Disabled) { onClick() },
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                enabled = enabled && state != AnswerOptionState.Disabled,
+            ) { onClick() },
         shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        border = BorderStroke(2.dp, borderColor),
+        colors = CardDefaults.cardColors(containerColor = animatedBackgroundColor),
+        border = BorderStroke(2.dp, animatedBorderColor),
     ) {
         Row(
             modifier = Modifier
@@ -88,7 +130,7 @@ fun AnswerOption(
                 filled = state == AnswerOptionState.Selected ||
                     state == AnswerOptionState.Correct ||
                     state == AnswerOptionState.Wrong,
-                color = radioColor,
+                color = animatedRadioColor,
                 alpha = contentAlpha,
             )
             Spacer(modifier = Modifier.width(spacing.md))

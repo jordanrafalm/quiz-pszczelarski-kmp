@@ -4,6 +4,7 @@ import kotlinx.coroutines.launch
 import pl.quizpszczelarski.app.presentation.base.MviViewModel
 import pl.quizpszczelarski.shared.domain.model.LeaderboardEntry
 import pl.quizpszczelarski.shared.domain.repository.LeaderboardRepository
+import pl.quizpszczelarski.shared.domain.repository.UserRepository
 
 /**
  * ViewModel for the Leaderboard screen.
@@ -12,6 +13,7 @@ import pl.quizpszczelarski.shared.domain.repository.LeaderboardRepository
 class LeaderboardViewModel(
     private val leaderboardRepository: LeaderboardRepository,
     private val currentUid: String?,
+    private val userRepository: UserRepository,
 ) : MviViewModel<LeaderboardState, LeaderboardIntent, LeaderboardEffect>(
     LeaderboardState(isLoading = true),
 ) {
@@ -51,6 +53,23 @@ class LeaderboardViewModel(
             is LeaderboardIntent.GoBack -> {
                 emitEffect(LeaderboardEffect.NavigateBack)
                 state
+            }
+            is LeaderboardIntent.StartEditNickname -> state.copy(isEditingNickname = true)
+            is LeaderboardIntent.UpdateNicknameInput -> state.copy(nicknameInput = intent.text)
+            is LeaderboardIntent.CancelEditNickname -> state.copy(isEditingNickname = false, nicknameInput = "")
+            is LeaderboardIntent.ConfirmNickname -> {
+                val nick = state.nicknameInput.trim()
+                if (nick.isNotEmpty() && currentUid != null) {
+                    scope.launch {
+                        try {
+                            userRepository.updateNickname(currentUid, nick)
+                            emitEffect(LeaderboardEffect.ShowSnackbar("Nick zmieniony!"))
+                        } catch (_: Exception) {
+                            emitEffect(LeaderboardEffect.ShowSnackbar("Nie udało się zmienić nicku"))
+                        }
+                    }
+                }
+                state.copy(isEditingNickname = false, nicknameInput = "")
             }
             is LoadEntries -> state.copy(
                 entries = intent.entries,

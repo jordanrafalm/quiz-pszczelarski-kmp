@@ -1,17 +1,16 @@
 package pl.quizpszczelarski.app.navigation
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -28,6 +27,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import pl.quizpszczelarski.app.platform.LocalHaptics
+import pl.quizpszczelarski.app.platform.LocalSettingsState
+import pl.quizpszczelarski.app.platform.SplashSoundPlayer
 import pl.quizpszczelarski.app.presentation.home.HomeEffect
 import pl.quizpszczelarski.app.presentation.home.HomeViewModel
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardEffect
@@ -48,6 +50,8 @@ import pl.quizpszczelarski.shared.data.local.SqlDelightQuestionsDataSource
 import pl.quizpszczelarski.shared.data.local.db.QuizDatabase
 import pl.quizpszczelarski.shared.data.questions.CachingQuestionsRepository
 import pl.quizpszczelarski.shared.data.remote.FirestoreQuestionsDataSource
+import pl.quizpszczelarski.shared.data.settings.SettingsFactory
+import pl.quizpszczelarski.shared.data.settings.SettingsRepositoryImpl
 import pl.quizpszczelarski.shared.data.user.FirebaseUserRepository
 import pl.quizpszczelarski.shared.domain.usecase.EnsureUserUseCase
 import pl.quizpszczelarski.shared.domain.usecase.GetRandomQuestionsUseCase
@@ -61,7 +65,7 @@ import pl.quizpszczelarski.shared.domain.usecase.flushPendingScores
  * ViewModels are created directly (no DI yet — Koin in Phase 3+).
  */
 @Composable
-fun AppNavigation(driverFactory: DatabaseDriverFactory) {
+fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: SettingsFactory, splashSoundPlayer: SplashSoundPlayer? = null) {
     var currentRoute by remember { mutableStateOf<Route>(Route.Splash) }
 
     // Firebase instances (GitLive singletons)
@@ -79,6 +83,13 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory) {
     val questionSyncService: pl.quizpszczelarski.shared.domain.repository.QuestionSyncService = questionRepository
     val userRepository = remember { FirebaseUserRepository(auth, firestore) }
     val leaderboardRepository = remember { FirebaseLeaderboardRepository(firestore) }
+
+    // Settings
+    val settingsRepo = remember { SettingsRepositoryImpl(settingsFactory.create()) }
+    val settingsState by settingsRepo.getSettingsFlow()
+        .collectAsState(initial = settingsRepo.getSettings())
+
+    val haptics = LocalHaptics.current
 
     // Use cases
     val getRandomQuestions = remember { GetRandomQuestionsUseCase(questionRepository) }
@@ -100,31 +111,49 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory) {
         }
     }
 
-    Scaffold(
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = MaterialTheme.colorScheme.inverseSurface,
-                    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                )
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .statusBarsPadding(),
-        ) {
-        AnimatedContent(targetState = currentRoute) { route ->
+    CompositionLocalProvider(LocalSettingsState provides settingsState) {
+        Scaffold(
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState) { data ->
+                    Snackbar(
+                        snackbarData = data,
+                        containerColor = MaterialTheme.colorScheme.inverseSurface,
+                        contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    )
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.background,
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+            ) {
+            AnimatedContent(
+            targetState = currentRoute,
+            transitionSpec = {
+                when {
+                    initialState is Route.Splash -> AppTransitions.splashTransition()
+                    targetState is Route.Home -> AppTransitions.screenTransitionBack()
+                    else -> AppTransitions.screenTransition()
+                }
+            },
+            label = "ScreenTransition",
+        ) { route ->
             when (route) {
                 Route.Splash -> {
-                    SplashScreen(
-                        onSplashFinished = { /* handled by LaunchedEffect */ },
-                    )
+                    SplashScreen()
                     LaunchedEffect(Unit) {
+                        // Play bee sound on splash (only if sound enabled)
+                        if (settingsState.soundEnabled) {
+                            splashSoundPlayer?.let { player ->
+                                try {
+                                    val soundBytes = quiz_pszczelarski_kmp.composeapp.generated.resources.Res.readBytes("files/bee_sound.mp3")
+                                    player.play(soundBytes)
+                                } catch (_: Exception) { }
+                            }
+                        }
+
                         val bootstrapJob = async {
                             try {
                                 val (uid, _) = ensureUser()
@@ -139,11 +168,14 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory) {
                                 questionRepository.syncQuestionsIfNeeded()
                             } catch (_: Exception) { }
                         }
-                        // Ensure splash shows for at least 2s, but don't block forever
-                        delay(2000L)
+                        // Ensure splash shows for at least 3s, but don't block forever
+                        delay(3000L)
                         // Give auth and sync a few more seconds, then proceed regardless
                         withTimeoutOrNull(4000L) { bootstrapJob.await() }
                         withTimeoutOrNull(2000L) { syncJob.await() }
+
+                        // Release sound player
+                        splashSoundPlayer?.release()
 
                         // Submit pending scores from previous offline sessions.
                         // Uses coroutineScope (not LaunchedEffect) so it survives route change.
@@ -168,8 +200,30 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory) {
                     LaunchedEffect(Unit) {
                         vm.effect.collect { effect ->
                             when (effect) {
-                                HomeEffect.NavigateToQuiz -> currentRoute = Route.Quiz
-                                HomeEffect.NavigateToLeaderboard -> currentRoute = Route.Leaderboard
+                                is HomeEffect.NavigateToQuiz -> {
+                                    currentRoute = Route.Quiz(
+                                        level = effect.level,
+                                        questionCount = effect.questionCount,
+                                    )
+                                }
+                                HomeEffect.NavigateToLeaderboard -> {
+                                    currentRoute = Route.Leaderboard
+                                }
+                                is HomeEffect.PlayHaptic -> {
+                                    if (settingsState.hapticsEnabled) {
+                                        haptics.impact(effect.type)
+                                    }
+                                }
+                                HomeEffect.ToggleHaptics -> {
+                                    coroutineScope.launch {
+                                        settingsRepo.setHapticsEnabled(!settingsState.hapticsEnabled)
+                                    }
+                                }
+                                HomeEffect.ToggleSound -> {
+                                    coroutineScope.launch {
+                                        settingsRepo.setSoundEnabled(!settingsState.soundEnabled)
+                                    }
+                                }
                             }
                         }
                     }
@@ -177,8 +231,8 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory) {
                     HomeScreen(state = state, onIntent = vm::onIntent)
                 }
 
-                Route.Quiz -> {
-                    val vm = remember { QuizViewModel(getRandomQuestions, questionSyncService) }
+                is Route.Quiz -> {
+                    val vm = remember { QuizViewModel(getRandomQuestions, questionSyncService, route.level, route.questionCount) }
                     DisposableEffect(Unit) { onDispose { vm.onCleared() } }
                     val state by vm.state.collectAsState()
 
@@ -198,6 +252,14 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory) {
                                     currentRoute = Route.Home
                                     showSnackbar("Połącz się z internetem, aby pobrać pytania")
                                 }
+                                is QuizEffect.PlayHaptic -> {
+                                    if (settingsState.hapticsEnabled) {
+                                        haptics.impact(effect.type)
+                                    }
+                                }
+                                is QuizEffect.NavigateToHome -> {
+                                    currentRoute = Route.Home
+                                }
                             }
                         }
                     }
@@ -213,6 +275,8 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory) {
                             submitScore = submitScore,
                             uid = currentUid,
                             pendingScoreDataSource = pendingScoreDataSource,
+                            userRepository = userRepository,
+                            settingsRepository = settingsRepo,
                         )
                     }
                     DisposableEffect(Unit) { onDispose { vm.onCleared() } }
@@ -221,10 +285,15 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory) {
                     LaunchedEffect(Unit) {
                         vm.effect.collect { effect ->
                             when (effect) {
-                                ResultEffect.NavigateToQuiz -> currentRoute = Route.Quiz
+                                ResultEffect.NavigateToHome -> currentRoute = Route.Home
                                 ResultEffect.NavigateToLeaderboard -> currentRoute = Route.Leaderboard
                                 is ResultEffect.ShowError -> {
                                     showSnackbar(effect.message)
+                                }
+                                is ResultEffect.PlayHaptic -> {
+                                    if (settingsState.hapticsEnabled) {
+                                        haptics.impact(effect.type)
+                                    }
                                 }
                             }
                         }
@@ -238,6 +307,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory) {
                         LeaderboardViewModel(
                             leaderboardRepository = leaderboardRepository,
                             currentUid = currentUid,
+                            userRepository = userRepository,
                         )
                     }
                     DisposableEffect(Unit) { onDispose { vm.onCleared() } }
@@ -247,6 +317,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory) {
                         vm.effect.collect { effect ->
                             when (effect) {
                                 LeaderboardEffect.NavigateBack -> currentRoute = Route.Home
+                                is LeaderboardEffect.ShowSnackbar -> showSnackbar(effect.message)
                             }
                         }
                     }
@@ -254,7 +325,8 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory) {
                     LeaderboardScreen(state = state, onIntent = vm::onIntent)
                 }
             }
+            }
+            }
         }
-        }
-    }
+    } // CompositionLocalProvider
 }

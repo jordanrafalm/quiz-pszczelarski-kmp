@@ -68,6 +68,11 @@ class FirebaseUserRepository(
         )
     }
 
+    override suspend fun updateNickname(uid: String, newNickname: String) {
+        val docRef = firestore.collection("users").document(uid)
+        docRef.update("nickname" to newNickname)
+    }
+
     private fun generateNickname(): String {
         val suffix = Random.nextInt(1000, 9999)
         return "Pszczelarz#$suffix"

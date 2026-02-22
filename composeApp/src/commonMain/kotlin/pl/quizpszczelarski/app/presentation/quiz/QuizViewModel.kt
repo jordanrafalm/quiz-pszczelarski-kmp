@@ -1,6 +1,7 @@
 package pl.quizpszczelarski.app.presentation.quiz
 
 import kotlinx.coroutines.launch
+import pl.quizpszczelarski.app.platform.ImpactType
 import pl.quizpszczelarski.app.presentation.base.MviViewModel
 import pl.quizpszczelarski.shared.domain.model.Question
 import pl.quizpszczelarski.shared.domain.repository.QuestionSyncService
@@ -15,6 +16,8 @@ import pl.quizpszczelarski.shared.domain.usecase.GetRandomQuestionsUseCase
 class QuizViewModel(
     private val getRandomQuestions: GetRandomQuestionsUseCase,
     private val syncService: QuestionSyncService,
+    private val level: String = "easy",
+    private val questionCount: Int = 5,
 ) : MviViewModel<QuizState, QuizIntent, QuizEffect>(QuizState()) {
 
     init {
@@ -25,7 +28,7 @@ class QuizViewModel(
         scope.launch {
             try {
                 // Step 1: Load from cache (or remote if first launch)
-                val questions = getRandomQuestions()
+                val questions = getRandomQuestions(count = questionCount, level = level)
 
                 if (questions.isEmpty()) {
                     // No questions available (empty cache + offline)
@@ -55,13 +58,21 @@ class QuizViewModel(
 
     override fun reduce(state: QuizState, intent: QuizIntent): QuizState {
         return when (intent) {
-            is QuizIntent.SelectAnswer -> state.copy(
-                selectedAnswerIndex = intent.index,
-            )
+            is QuizIntent.SelectAnswer -> {
+                emitEffect(QuizEffect.PlayHaptic(ImpactType.Light))
+                state.copy(
+                    selectedAnswerIndex = intent.index,
+                )
+            }
 
             is QuizIntent.RetryLoad -> {
                 loadQuestions()
                 state.copy(isLoading = true, errorMessage = null)
+            }
+
+            is QuizIntent.ExitQuiz -> {
+                emitEffect(QuizEffect.NavigateToHome)
+                state
             }
 
             is QuizIntent.NextQuestion -> {
@@ -75,6 +86,12 @@ class QuizViewModel(
                 }
 
                 if (state.isLastQuestion) {
+                    val hapticType = if (newScore > state.totalQuestions / 2) {
+                        ImpactType.Success
+                    } else {
+                        ImpactType.Medium
+                    }
+                    emitEffect(QuizEffect.PlayHaptic(hapticType))
                     emitEffect(
                         QuizEffect.NavigateToResult(
                             score = newScore,
@@ -83,6 +100,7 @@ class QuizViewModel(
                     )
                     state.copy(score = newScore)
                 } else {
+                    emitEffect(QuizEffect.PlayHaptic(ImpactType.Light))
                     state.copy(
                         currentQuestionIndex = state.currentQuestionIndex + 1,
                         selectedAnswerIndex = null,

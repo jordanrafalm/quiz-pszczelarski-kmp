@@ -14,10 +14,11 @@ class GetRandomQuestionsUseCase(
 
     /**
      * @param count Number of questions to return (default 5).
+     * @param level Difficulty level filter (null = all levels).
      * @return Shuffled list of [count] questions.
      */
-    suspend operator fun invoke(count: Int = 5): List<Question> {
-        return repository.getActiveQuestions()
+    suspend operator fun invoke(count: Int = 5, level: String? = null): List<Question> {
+        return repository.getActiveQuestions(level = level)
             .shuffled()
             .take(count)
     }
