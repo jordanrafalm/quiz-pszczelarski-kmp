@@ -11,6 +11,8 @@
 		2152ACDE2B03E5B400DE6E51 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2152ACDD2B03E5B400DE6E51 /* Assets.xcassets */; };
 		A1B2C3D72B03E5B200DE6E51 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D52B03E5B200DE6E51 /* FirebaseAuth */; };
 		A1B2C3D82B03E5B200DE6E51 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D62B03E5B200DE6E51 /* FirebaseFirestore */; };
+		A1B2C3D90B03E5B200DE6E51 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D70B03E5B200DE6E51 /* FirebaseAnalytics */; };
+		A1B2C3DA0B03E5B200DE6E51 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D80B03E5B200DE6E51 /* FirebaseCrashlytics */; };
 		A1B2C3DB2B03E5B200DE6E51 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3DC2B03E5B200DE6E51 /* FirebaseRemoteConfig */; };
 		A1B2C3DA2B03E5B200DE6E51 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D92B03E5B200DE6E51 /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
@@ -29,6 +31,8 @@
 			files = (
 				A1B2C3D72B03E5B200DE6E51 /* FirebaseAuth in Frameworks */,
 				A1B2C3D82B03E5B200DE6E51 /* FirebaseFirestore in Frameworks */,
+				A1B2C3D90B03E5B200DE6E51 /* FirebaseAnalytics in Frameworks */,
+				A1B2C3DA0B03E5B200DE6E51 /* FirebaseCrashlytics in Frameworks */,
 				A1B2C3DB2B03E5B200DE6E51 /* FirebaseRemoteConfig in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -82,6 +86,8 @@
 			packageProductDependencies = (
 				A1B2C3D52B03E5B200DE6E51 /* FirebaseAuth */,
 				A1B2C3D62B03E5B200DE6E51 /* FirebaseFirestore */,
+				A1B2C3D70B03E5B200DE6E51 /* FirebaseAnalytics */,
+				A1B2C3D80B03E5B200DE6E51 /* FirebaseCrashlytics */,
 				A1B2C3DC2B03E5B200DE6E51 /* FirebaseRemoteConfig */,
 			);
 			productName = iosApp;
@@ -100,10 +106,10 @@
 			};
 			buildConfigurationList = 2152ACD12B03E5B200DE6E51 /* Build configuration list for PBXProject "iosApp" */;
 			compatibilityVersion = "Xcode 14.0";
-			developmentRegion = en;
+			developmentRegion = pl;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
+				pl,
 				Base,
 			);
 			mainGroup = 2152ACCD2B03E5B200DE6E51;
@@ -228,8 +234,10 @@
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Quiz Pszczelarski";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.trivia-games";
+			INFOPLIST_KEY_CFBundleDevelopmentRegion = pl;
+			INFOPLIST_KEY_CFBundleDisplayName = "Quiz Pszczelarski";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -263,8 +271,10 @@
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Quiz Pszczelarski";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.trivia-games";
+			INFOPLIST_KEY_CFBundleDevelopmentRegion = pl;
+			INFOPLIST_KEY_CFBundleDisplayName = "Quiz Pszczelarski";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -332,11 +342,23 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A1B2C3D42B03E5B200DE6E51 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
-		};		A1B2C3DC2B03E5B200DE6E51 /* FirebaseRemoteConfig */ = {
-				isa = XCSwiftPackageProductDependency;
-				package = A1B2C3D42B03E5B200DE6E51 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-				productName = FirebaseRemoteConfig;
-			};/* End XCSwiftPackageProductDependency section */
+		};
+		A1B2C3D70B03E5B200DE6E51 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3D42B03E5B200DE6E51 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		A1B2C3D80B03E5B200DE6E51 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3D42B03E5B200DE6E51 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		A1B2C3DC2B03E5B200DE6E51 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3D42B03E5B200DE6E51 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2152ACCE2B03E5B200DE6E51 /* Project object */;
 }

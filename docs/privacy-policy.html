@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Polityka Prywatności — Quiz Pszczelarski</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Polityka Prywatności — Quiz Pszczelarski</h1>
+</header>
+<h1 id="polityka-prywatności-quiz-pszczelarski">Polityka Prywatności —
+Quiz Pszczelarski</h1>
+<p><strong>Obowiązuje od:</strong> 22 lutego 2026<br />
+<strong>Deweloper:</strong> Rafał Jordan<br />
+<strong>Kontakt:</strong> jordanrafalm@gmail.com<br />
+<strong>Aplikacja:</strong> Quiz Pszczelarski (Android, iOS)</p>
+<hr />
+<h2 id="wstęp">1. Wstęp</h2>
+<p>Niniejsza Polityka Prywatności opisuje, jakie dane są zbierane przez
+aplikację <strong>Quiz Pszczelarski</strong>, w jaki sposób są
+wykorzystywane oraz jakie prawa przysługują użytkownikowi. Korzystając z
+aplikacji, akceptujesz zasady opisane w tym dokumencie.</p>
+<hr />
+<h2 id="jakie-dane-zbieramy">2. Jakie dane zbieramy</h2>
+<h3 id="dane-zbierane-automatycznie">2.1 Dane zbierane
+automatycznie</h3>
+<h4 id="konto-użytkownika-firebase-anonymous-authentication">Konto
+użytkownika (Firebase Anonymous Authentication)</h4>
+<ul>
+<li>Aplikacja tworzy <strong>anonimowe konto</strong> bez żadnych danych
+osobowych (bez adresu e-mail, numeru telefonu, imienia ani
+nazwiska).</li>
+<li>Generowany jest losowy identyfikator użytkownika (UID) — nie jest
+powiązany z żadną tożsamością.</li>
+<li>Użytkownik może samodzielnie wybrać <strong>pseudonim</strong>
+(nick), który będzie widoczny w rankingu. Nick nie jest weryfikowany i
+nie musi zawierać prawdziwych danych.</li>
+</ul>
+<h4 id="wyniki-quizów-firebase-firestore">Wyniki quizów (Firebase
+Firestore)</h4>
+<ul>
+<li>Wyniki gier (liczba punktów, liczba rozegranych quizów)
+przechowywane są w bazie danych w chmurze.</li>
+<li>Dane te są widoczne w globalnym rankingu pod wybranym
+pseudonimem.</li>
+</ul>
+<h4 id="dane-analityczne-firebase-analytics">Dane analityczne (Firebase
+Analytics)</h4>
+<p>Zbieramy anonimowe zdarzenia: - <code>quiz_started</code> —
+rozpoczęcie quizu (poziom, liczba pytań) - <code>quiz_completed</code> —
+ukończenie quizu (czas trwania, wynik) - <code>quiz_abandoned</code> —
+porzucenie quizu</p>
+<p>Dane analityczne są <strong>zanonimizowane</strong> i nie pozwalają
+na identyfikację konkretnej osoby.</p>
+<h4 id="raporty-błędów-firebase-crashlytics">Raporty błędów (Firebase
+Crashlytics)</h4>
+<ul>
+<li>W przypadku awarii aplikacji automatycznie wysyłany jest raport
+techniczny.</li>
+<li>Raport zawiera informacje o urządzeniu (model, wersja systemu),
+stack trace błędu oraz niestandardowe klucze diagnostyczne (aktualny
+poziom quizu, tryb gry).</li>
+<li>Raporty <strong>nie zawierają</strong> danych osobowych.</li>
+</ul>
+<h3 id="dane-przechowywane-lokalnie-na-urządzeniu">2.2 Dane
+przechowywane lokalnie na urządzeniu</h3>
+<ul>
+<li><strong>Cache pytań</strong> — pytania quizowe zapisywane lokalnie w
+bazie SQLite w celu działania offline. Dane te nie są wysyłane nigdzie
+poza odświeżeniem z Firebase Firestore.</li>
+<li><strong>Ustawienia</strong> — preferencje aplikacji (dźwięk,
+wibracje, pseudonim, powiadomienia) przechowywane lokalnie i nie
+opuszczają urządzenia.</li>
+<li><strong>Kolejka offline</strong> — wyniki quizów rozegranych bez
+dostępu do internetu przechowywane lokalnie do czasu przywrócenia
+połączenia.</li>
+</ul>
+<hr />
+<h2 id="w-jakim-celu-używamy-danych">3. W jakim celu używamy danych</h2>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 76%" />
+</colgroup>
+<thead>
+<tr>
+<th>Cel</th>
+<th>Podstawa prawna</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Umożliwienie logowania i przechowywania wyników</td>
+<td>Wykonanie umowy (art. 6 ust. 1 lit. b RODO)</td>
+</tr>
+<tr>
+<td>Globalny ranking użytkowników</td>
+<td>Uzasadniony interes (art. 6 ust. 1 lit. f RODO)</td>
+</tr>
+<tr>
+<td>Analiza sposobu korzystania z aplikacji</td>
+<td>Uzasadniony interes — poprawa jakości aplikacji</td>
+</tr>
+<tr>
+<td>Diagnostyka i naprawa błędów</td>
+<td>Uzasadniony interes</td>
+</tr>
+<tr>
+<td>Konfiguracja zdalna aplikacji</td>
+<td>Uzasadniony interes</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="udostępnianie-danych-podmiotom-trzecim">4. Udostępnianie danych
+podmiotom trzecim</h2>
+<p>Dane zbierane przez aplikację <strong>nie są sprzedawane</strong> ani
+przekazywane podmiotom trzecim w celach marketingowych.</p>
+<p>Korzystamy z następujących usług zewnętrznych
+(podprzetwarzający):</p>
+<table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 22%" />
+<col style="width: 11%" />
+<col style="width: 48%" />
+</colgroup>
+<thead>
+<tr>
+<th>Usługa</th>
+<th>Dostawca</th>
+<th>Cel</th>
+<th>Polityka prywatności</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Firebase Authentication</td>
+<td>Google LLC</td>
+<td>Anonimowe logowanie</td>
+<td><a href="https://firebase.google.com/support/privacy">Link</a></td>
+</tr>
+<tr>
+<td>Firebase Firestore</td>
+<td>Google LLC</td>
+<td>Przechowywanie wyników i pytań</td>
+<td><a href="https://firebase.google.com/support/privacy">Link</a></td>
+</tr>
+<tr>
+<td>Firebase Analytics</td>
+<td>Google LLC</td>
+<td>Analiza użytkowania</td>
+<td><a href="https://firebase.google.com/support/privacy">Link</a></td>
+</tr>
+<tr>
+<td>Firebase Crashlytics</td>
+<td>Google LLC</td>
+<td>Raporty błędów</td>
+<td><a href="https://firebase.google.com/support/privacy">Link</a></td>
+</tr>
+<tr>
+<td>Firebase Remote Config</td>
+<td>Google LLC</td>
+<td>Zdalna konfiguracja aplikacji</td>
+<td><a href="https://firebase.google.com/support/privacy">Link</a></td>
+</tr>
+</tbody>
+</table>
+<p>Google LLC przetwarza dane zgodnie z umową o przetwarzaniu danych
+(Data Processing Agreement) oraz przepisami RODO. Dane mogą być
+przetwarzane na serwerach w Stanach Zjednoczonych — Google stosuje
+standardowe klauzule umowne jako zabezpieczenie transferu danych.</p>
+<hr />
+<h2 id="powiadomienia-push">5. Powiadomienia push</h2>
+<p>Aplikacja może wysyłać <strong>lokalne powiadomienia</strong>
+przypominające o codziennej nauce. Powiadomienia są generowane przez
+urządzenie użytkownika — <strong>żadne dane nie są wysyłane na
+serwery</strong> w celu ich dostarczenia (nie używamy FCM/APNs
+push).</p>
+<p>Użytkownik może w dowolnym momencie wyłączyć powiadomienia: -
+<strong>Android:</strong> Ustawienia → Aplikacje → Quiz Pszczelarski →
+Powiadomienia - <strong>iOS:</strong> Ustawienia → Powiadomienia → Quiz
+Pszczelarski</p>
+<hr />
+<h2 id="prawa-użytkownika-rodo">6. Prawa użytkownika (RODO)</h2>
+<p>Zgodnie z Rozporządzeniem (UE) 2016/679 (RODO) przysługują Ci
+następujące prawa:</p>
+<ul>
+<li><strong>Prawo dostępu</strong> — możesz uzyskać informację o danych
+przechowywanych na Twój temat.</li>
+<li><strong>Prawo do usunięcia</strong> — możesz zażądać usunięcia
+swoich danych (konta, wyników, pseudonimu). Wystarczy skontaktować się
+pod adresem: jordanrafalm@gmail.com</li>
+<li><strong>Prawo do sprzeciwu</strong> — możesz sprzeciwić się
+przetwarzaniu danych analitycznych.</li>
+<li><strong>Prawo do przenoszenia</strong> — możesz receive dane w
+ustrukturyzowanym formacie.</li>
+<li><strong>Prawo do skargi</strong> — jeśli uważasz, że przetwarzanie
+narusza RODO, możesz złożyć skargę do Prezesa Urzędu Ochrony Danych
+Osobowych (UODO), ul. Stawki 2, 00-193 Warszawa.</li>
+</ul>
+<p>Aby skorzystać z praw, skontaktuj się:
+<strong>jordanrafalm@gmail.com</strong></p>
+<hr />
+<h2 id="dzieci">7. Dzieci</h2>
+<p>Aplikacja <strong>nie jest skierowana do dzieci poniżej 13 roku
+życia</strong> i świadomie nie zbiera danych osobowych od dzieci. Jeśli
+jesteś rodzicem i uważasz, że Twoje dziecko przekazało nam dane osobowe,
+skontaktuj się z nami.</p>
+<hr />
+<h2 id="bezpieczeństwo-danych">8. Bezpieczeństwo danych</h2>
+<ul>
+<li>Połączenie z Firebase odbywa się przez szyfrowane protokoły
+(HTTPS/TLS).</li>
+<li>Anonimowe konta nie zawierają danych umożliwiających
+identyfikację.</li>
+<li>Dostęp do bazy danych Firestore jest ograniczony regułami
+bezpieczeństwa — użytkownik może odczytywać/zapisywać tylko własne
+dane.</li>
+</ul>
+<hr />
+<h2 id="zmiany-polityki-prywatności">9. Zmiany polityki prywatności</h2>
+<p>Zastrzegamy sobie prawo do aktualizacji niniejszej Polityki
+Prywatności. O istotnych zmianach poinformujemy poprzez mechanizm
+wymuszenia aktualizacji w aplikacji lub powiadomienie przy uruchomieniu.
+Data ostatniej aktualizacji jest zawsze widoczna na górze tego
+dokumentu.</p>
+<hr />
+<h2 id="kontakt">10. Kontakt</h2>
+<p>W sprawach związanych z prywatnością i wsparciem:</p>
+<p><strong>Rafał Jordan</strong><br />
+📧 jordanrafalm@gmail.com<br />
+🌐 https://github.com/jordanrafalm/quiz-pszczelarski-kmp<br />
+🆘 https://github.com/jordanrafalm/quiz-pszczelarski-kmp/issues</p>
+</body>
+</html>

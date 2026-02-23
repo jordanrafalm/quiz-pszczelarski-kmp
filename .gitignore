@@ -1,6 +1,7 @@
 # Gradle
 .gradle/
 build/
+composeApp/release/
 !gradle/wrapper/gradle-wrapper.jar
 
 # IDE
