@@ -21,6 +21,8 @@ import pl.quizpszczelarski.app.presentation.gameofday.GameOfDayIntent
 import pl.quizpszczelarski.app.presentation.gameofday.GameOfDayState
 import pl.quizpszczelarski.app.presentation.gameofday.GameOfDayType
 import pl.quizpszczelarski.app.ui.components.FlappyBeeView
+import pl.quizpszczelarski.app.ui.components.MazeBoard
+import pl.quizpszczelarski.app.ui.components.MemoryPairsBoard
 import pl.quizpszczelarski.app.ui.components.QuizTopBar
 import pl.quizpszczelarski.app.ui.theme.AppTheme
 
@@ -59,7 +61,7 @@ fun GameOfDayScreen(
             when (screenState) {
                 GameOfDayState.ScreenState.Menu -> MenuContent(state, onIntent, spacing)
                 GameOfDayState.ScreenState.Playing -> PlayingContent(state, onIntent, spacing)
-                is GameOfDayState.ScreenState.GameOver -> GameOverContent(screenState, onIntent, spacing)
+                is GameOfDayState.ScreenState.GameOver -> GameOverContent(screenState, state.todayType, onIntent, spacing)
             }
         }
     }
@@ -124,7 +126,15 @@ private fun PlayingContent(
             onGameOver = { score -> onIntent(GameOfDayIntent.EndGame(score)) },
             modifier = Modifier.fillMaxSize(),
         )
-        else -> Column(
+        GameOfDayType.Maze -> MazeBoard(
+            onComplete = { moves -> onIntent(GameOfDayIntent.EndGame(moves)) },
+            modifier = Modifier.fillMaxSize(),
+        )
+        GameOfDayType.Memory -> MemoryPairsBoard(
+            onComplete = { score -> onIntent(GameOfDayIntent.EndGame(score)) },
+            modifier = Modifier.fillMaxSize(),
+        )
+        GameOfDayType.Sequence -> Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = spacing.lg),
@@ -153,9 +163,17 @@ private fun PlayingContent(
 @Composable
 private fun GameOverContent(
     screenState: GameOfDayState.ScreenState.GameOver,
+    gameType: GameOfDayType,
     onIntent: (GameOfDayIntent) -> Unit,
     spacing: AppTheme.Spacing,
 ) {
+    val scoreLabel = when (gameType) {
+        GameOfDayType.Maze -> "Liczba ruchów: ${screenState.score} 🐝"
+        GameOfDayType.Memory -> "Wynik: ${screenState.score} / 100 pkt"
+        GameOfDayType.FlappyBee -> "Wynik: ${screenState.score} przejść"
+        GameOfDayType.Sequence -> "Wynik: ${screenState.score} pkt"
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -169,14 +187,15 @@ private fun GameOverContent(
         )
         Spacer(modifier = Modifier.height(spacing.lg))
         Text(
-            text = "Koniec gry",
+            text = "Dobra robota!",
             style = MaterialTheme.typography.headlineMedium,
         )
         Spacer(modifier = Modifier.height(spacing.md))
         Text(
-            text = "Twój wynik: ${screenState.score}",
+            text = scoreLabel,
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(spacing.lg))
         Button(onClick = { onIntent(GameOfDayIntent.RetryGame) }) {
