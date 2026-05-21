@@ -294,7 +294,12 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                         }
 
                         Route.Home -> {
-                            val vm = remember { HomeViewModel(newQuestionsAvailable = appConfig.newQuestionsAvailable) }
+                            val vm = remember {
+                                HomeViewModel(
+                                    newQuestionsAvailable = appConfig.newQuestionsAvailable,
+                                    gameOfDayRepository = gameOfDayRepository,
+                                )
+                            }
                             DisposableEffect(Unit) { onDispose { vm.onCleared() } }
                             val state by vm.state.collectAsState()
 

@@ -2,14 +2,25 @@ package pl.quizpszczelarski.app.presentation.home
 
 import pl.quizpszczelarski.app.platform.ImpactType
 import pl.quizpszczelarski.app.presentation.base.MviViewModel
+import pl.quizpszczelarski.shared.data.gameofday.GameOfDayRepository
 
 /**
  * ViewModel for the Home screen.
  * Home has no complex state — mainly emits navigation effects.
+ *
+ * Reads Game of Day completion state from [gameOfDayRepository] at construction so the
+ * badge on the "Gra Dnia" card is always fresh when the user returns to Home.
  */
 class HomeViewModel(
     newQuestionsAvailable: Boolean = false,
-) : MviViewModel<HomeState, HomeIntent, HomeEffect>(HomeState(newQuestionsAvailable = newQuestionsAvailable)) {
+    gameOfDayRepository: GameOfDayRepository? = null,
+) : MviViewModel<HomeState, HomeIntent, HomeEffect>(
+    HomeState(
+        newQuestionsAvailable = newQuestionsAvailable,
+        gameOfDayCompleted = gameOfDayRepository?.isCompletedToday() ?: false,
+        gameOfDayScore = gameOfDayRepository?.getLastScore() ?: 0,
+    )
+) {
 
     override fun reduce(state: HomeState, intent: HomeIntent): HomeState {
         when (intent) {

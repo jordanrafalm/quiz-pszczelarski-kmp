@@ -391,6 +391,16 @@ private fun HomeMainContent(
                 icon = { Text("🎮", style = MaterialTheme.typography.headlineSmall) },
                 onClick = { if (!easterEggActive) onIntent(HomeIntent.ViewGameOfDay) },
                 iconBackgroundColor = MaterialTheme.colorScheme.tertiary,
+                badge = if (state.gameOfDayCompleted) {
+                    {
+                        Spacer(modifier = Modifier.height(spacing.xs))
+                        Text(
+                            text = "✅ Zagrano dzisiaj! Wynik: ${state.gameOfDayScore}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.tertiary,
+                        )
+                    }
+                } else null,
             )
 
             Spacer(modifier = Modifier.height(spacing.lg))
