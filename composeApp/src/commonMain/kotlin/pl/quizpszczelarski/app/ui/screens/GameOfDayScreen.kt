@@ -3,7 +3,6 @@ package pl.quizpszczelarski.app.ui.screens
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +19,8 @@ import androidx.compose.ui.text.style.TextAlign
 import pl.quizpszczelarski.app.navigation.AppTransitions
 import pl.quizpszczelarski.app.presentation.gameofday.GameOfDayIntent
 import pl.quizpszczelarski.app.presentation.gameofday.GameOfDayState
+import pl.quizpszczelarski.app.presentation.gameofday.GameOfDayType
+import pl.quizpszczelarski.app.ui.components.FlappyBeeView
 import pl.quizpszczelarski.app.ui.components.QuizTopBar
 import pl.quizpszczelarski.app.ui.theme.AppTheme
 
@@ -48,23 +49,17 @@ fun GameOfDayScreen(
             onBackClick = { onIntent(GameOfDayIntent.BackToHome) },
         )
 
-        // Main content area — animated based on screenState
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = spacing.lg),
-            contentAlignment = Alignment.Center,
-        ) {
-            AnimatedContent(
-                targetState = state.screenState,
-                transitionSpec = { AppTransitions.screenTransition() },
-                label = "GameOfDayScreenState",
-            ) { screenState ->
-                when (screenState) {
-                    GameOfDayState.ScreenState.Menu -> MenuContent(state, onIntent, spacing)
-                    GameOfDayState.ScreenState.Playing -> PlayingContent(state, onIntent, spacing)
-                    is GameOfDayState.ScreenState.GameOver -> GameOverContent(screenState, onIntent, spacing)
-                }
+        // Main content — no outer padding so FlappyBee can fill the screen edge-to-edge
+        AnimatedContent(
+            targetState = state.screenState,
+            transitionSpec = { AppTransitions.screenTransition() },
+            modifier = Modifier.fillMaxSize(),
+            label = "GameOfDayScreenState",
+        ) { screenState ->
+            when (screenState) {
+                GameOfDayState.ScreenState.Menu -> MenuContent(state, onIntent, spacing)
+                GameOfDayState.ScreenState.Playing -> PlayingContent(state, onIntent, spacing)
+                is GameOfDayState.ScreenState.GameOver -> GameOverContent(screenState, onIntent, spacing)
             }
         }
     }
@@ -77,6 +72,9 @@ private fun MenuContent(
     spacing: AppTheme.Spacing,
 ) {
     Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -121,31 +119,33 @@ private fun PlayingContent(
     onIntent: (GameOfDayIntent) -> Unit,
     spacing: AppTheme.Spacing,
 ) {
-    // Placeholder for actual game canvas/components
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "🎮 Gra: ${state.todayType.title()}",
-            style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center,
+    when (state.todayType) {
+        GameOfDayType.FlappyBee -> FlappyBeeView(
+            onGameOver = { score -> onIntent(GameOfDayIntent.EndGame(score)) },
+            modifier = Modifier.fillMaxSize(),
         )
-        Spacer(modifier = Modifier.height(spacing.lg))
-        Text(
-            text = "Wynik: ${state.score}",
-            style = MaterialTheme.typography.headlineMedium,
-        )
-        Spacer(modifier = Modifier.height(spacing.lg))
-        Text(
-            text = "Implementacja w Commit 3-4...",
-            style = MaterialTheme.typography.bodyMedium,
-        )
-
-        // Temporary end button for testing
-        Spacer(modifier = Modifier.height(spacing.lg))
-        Button(onClick = { onIntent(GameOfDayIntent.EndGame(42)) }) {
-            Text("Koniec gry (test)")
+        else -> Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = spacing.lg),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = "${state.todayType.emoji()} ${state.todayType.title()}",
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(spacing.lg))
+            Text(
+                text = "Mini-gra w przygotowaniu...",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(spacing.lg))
+            Button(onClick = { onIntent(GameOfDayIntent.EndGame(0)) }) {
+                Text("Zakończ")
+            }
         }
     }
 }
@@ -157,6 +157,9 @@ private fun GameOverContent(
     spacing: AppTheme.Spacing,
 ) {
     Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
