@@ -21,6 +21,7 @@
 - [Uruchomienie](#uruchomienie)
 - [Konfiguracja Firebase](#konfiguracja-firebase)
 - [Testy](#testy)
+- [Publikacja w App Store](#publikacja-w-app-store)
 
 ---
 
@@ -401,6 +402,34 @@ Kluczowe decyzje architektoniczne są udokumentowane w [`docs/adr/`](docs/adr/):
 | [ADR-0005](docs/adr/ADR-0005-offline-cache-strategy.md) | Strategia cache offline |
 | [ADR-0010](docs/adr/ADR-0010-crashlytics-analytics.md) | Crashlytics i Analytics |
 | [ADR-0011](docs/adr/ADR-0011-answer-feedback-bonus-streak.md) | Feedback i bonus streak |
+
+---
+
+## Publikacja w App Store
+
+Dokumentacja procesu publikacji w Apple App Store:
+
+| Dokument | Opis |
+|----------|------|
+| [📋 Quick Action Guide](docs/app-store-quick-action-guide.md) | Szybki przewodnik — 9 kroków do publikacji |
+| [📝 Submission Checklist](docs/app-store-submission-checklist.md) | Szczegółowa lista wymagań App Store Connect |
+| [🌐 Hosting Privacy Policy](docs/hosting-privacy-policy.md) | Jak hostować politykę prywatności |
+| [📱 Generating iPad Screenshots](docs/generating-ipad-screenshots.md) | Tworzenie screenshotów dla iPad Pro 13" |
+| [🔒 Export Compliance](docs/export-compliance-ios.md) | Konfiguracja export compliance (szyfrowanie) |
+
+**Szybki start**:
+```bash
+# 1. Hostuj politykę prywatności (GitHub Pages)
+# Przejdź do: Settings → Pages → Enable
+
+# 2. Generuj screenshoty iPad
+open -a Simulator
+./gradlew :composeApp:embedAndSignAppleFrameworkForXcode
+open iosApp/iosApp.xcodeproj
+
+# 3. Wypełnij App Store Connect (kategoria, wiek, cena)
+# 4. Wyślij do review
+```
 
 ---
 

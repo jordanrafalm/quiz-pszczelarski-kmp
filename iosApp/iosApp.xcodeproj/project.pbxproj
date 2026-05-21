@@ -13,8 +13,8 @@
 		A1B2C3D82B03E5B200DE6E51 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D62B03E5B200DE6E51 /* FirebaseFirestore */; };
 		A1B2C3D90B03E5B200DE6E51 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D70B03E5B200DE6E51 /* FirebaseAnalytics */; };
 		A1B2C3DA0B03E5B200DE6E51 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D80B03E5B200DE6E51 /* FirebaseCrashlytics */; };
-		A1B2C3DB2B03E5B200DE6E51 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3DC2B03E5B200DE6E51 /* FirebaseRemoteConfig */; };
 		A1B2C3DA2B03E5B200DE6E51 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D92B03E5B200DE6E51 /* GoogleService-Info.plist */; };
+		A1B2C3DB2B03E5B200DE6E51 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3DC2B03E5B200DE6E51 /* FirebaseRemoteConfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -140,6 +140,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		2152ACFF2B03E5B200DE6E51 /* Compile Kotlin Framework */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -147,7 +148,6 @@
 			);
 			inputPaths = (
 			);
-			alwaysOutOfDate = 1;
 			name = "Compile Kotlin Framework";
 			outputFileListPaths = (
 			);
@@ -234,8 +234,8 @@
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
-			INFOPLIST_KEY_CFBundleDevelopmentRegion = pl;
-			INFOPLIST_KEY_CFBundleDisplayName = "Quiz Pszczelarski";
+				INFOPLIST_KEY_CFBundleDevelopmentRegion = pl;
+				INFOPLIST_KEY_CFBundleDisplayName = "Quiz Pszczelarski";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -246,7 +246,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.1.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
@@ -271,8 +271,8 @@
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
-			INFOPLIST_KEY_CFBundleDevelopmentRegion = pl;
-			INFOPLIST_KEY_CFBundleDisplayName = "Quiz Pszczelarski";
+				INFOPLIST_KEY_CFBundleDevelopmentRegion = pl;
+				INFOPLIST_KEY_CFBundleDisplayName = "Quiz Pszczelarski";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -283,7 +283,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.1.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",

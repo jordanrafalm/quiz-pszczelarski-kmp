@@ -105,6 +105,27 @@ interface NotificationScheduler {
 
 ---
 
+## Amendment — 2026-02-23: Remove Exact Alarm Permissions (Google Play Fix)
+
+**Status:** Required change before Google Play publication.
+
+### Problem
+The initial `AndroidManifest.xml` included both:
+- `USE_EXACT_ALARM` — reserved by Google Play policy exclusively for alarm clock and calendar apps. **Causes Play Store rejection.**
+- `SCHEDULE_EXACT_ALARM` — requires runtime user approval (Settings → Alarms & reminders). Unnecessary overhead.
+
+### Finding
+`AndroidNotificationScheduler.kt` already uses `setInexactRepeating` which does **not require either permission**. Both permissions were leftover from an early draft and were never cleaned up.
+
+### Decision
+Remove both permissions from `AndroidManifest.xml`. No Kotlin code changes required.
+
+**Accepted trade-off:** `setInexactRepeating` may fire with ±15 min drift. This is acceptable for a daily quiz reminder — the goal is "around 18:00", not atomic precision.
+
+See: [plans/phase-9-exact-alarm-permission-fix.md](../plans/phase-9-exact-alarm-permission-fix.md)
+
+---
+
 ## Follow-ups
 - Add notification channel creation in `MainActivity.onCreate()`
 - Add `RECEIVE_BOOT_COMPLETED` permission + `BootReceiver` to AndroidManifest
