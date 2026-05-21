@@ -23,6 +23,7 @@ import pl.quizpszczelarski.app.presentation.gameofday.GameOfDayType
 import pl.quizpszczelarski.app.ui.components.FlappyBeeView
 import pl.quizpszczelarski.app.ui.components.MazeBoard
 import pl.quizpszczelarski.app.ui.components.MemoryPairsBoard
+import pl.quizpszczelarski.app.ui.components.SequenceBoard
 import pl.quizpszczelarski.app.ui.components.QuizTopBar
 import pl.quizpszczelarski.app.ui.theme.AppTheme
 
@@ -134,29 +135,10 @@ private fun PlayingContent(
             onComplete = { score -> onIntent(GameOfDayIntent.EndGame(score)) },
             modifier = Modifier.fillMaxSize(),
         )
-        GameOfDayType.Sequence -> Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = spacing.lg),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = "${state.todayType.emoji()} ${state.todayType.title()}",
-                style = MaterialTheme.typography.headlineSmall,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(spacing.lg))
-            Text(
-                text = "Mini-gra w przygotowaniu...",
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(spacing.lg))
-            Button(onClick = { onIntent(GameOfDayIntent.EndGame(0)) }) {
-                Text("Zakończ")
-            }
-        }
+        GameOfDayType.Sequence -> SequenceBoard(
+            onComplete = { score -> onIntent(GameOfDayIntent.EndGame(score)) },
+            modifier = Modifier.fillMaxSize(),
+        )
     }
 }
 
