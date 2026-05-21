@@ -386,6 +386,16 @@ private fun HomeMainContent(
             Spacer(modifier = Modifier.height(spacing.lg))
 
             ActionCard(
+                title = "Gra Dnia",
+                description = "Codzienna krótka gra",
+                icon = { Text("🎮", style = MaterialTheme.typography.headlineSmall) },
+                onClick = { if (!easterEggActive) onIntent(HomeIntent.ViewGameOfDay) },
+                iconBackgroundColor = MaterialTheme.colorScheme.tertiary,
+            )
+
+            Spacer(modifier = Modifier.height(spacing.lg))
+
+            ActionCard(
                 title = "Ranking",
                 description = "Zobacz najlepsze wyniki",
                 icon = { Text("🏆", style = MaterialTheme.typography.headlineSmall) },

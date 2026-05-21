@@ -41,11 +41,14 @@ import pl.quizpszczelarski.app.presentation.home.HomeEffect
 import pl.quizpszczelarski.app.presentation.home.HomeViewModel
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardEffect
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardViewModel
+import pl.quizpszczelarski.app.presentation.gameofday.GameOfDayEffect
+import pl.quizpszczelarski.app.presentation.gameofday.GameOfDayViewModel
 import pl.quizpszczelarski.app.presentation.quiz.QuizEffect
 import pl.quizpszczelarski.app.presentation.quiz.QuizViewModel
 import pl.quizpszczelarski.app.presentation.result.ResultEffect
 import pl.quizpszczelarski.app.presentation.result.ResultViewModel
 import pl.quizpszczelarski.app.ui.screens.ForceUpdateScreen
+import pl.quizpszczelarski.app.ui.screens.GameOfDayScreen
 import pl.quizpszczelarski.app.ui.screens.HomeScreen
 import pl.quizpszczelarski.app.ui.screens.LeaderboardScreen
 import pl.quizpszczelarski.app.ui.screens.QuizScreen
@@ -53,6 +56,7 @@ import pl.quizpszczelarski.app.ui.screens.ResultScreen
 import pl.quizpszczelarski.app.ui.screens.SplashScreen
 import pl.quizpszczelarski.shared.data.analytics.FirebaseAnalyticsService
 import pl.quizpszczelarski.shared.data.config.FirebaseAppConfigRepository
+import pl.quizpszczelarski.shared.data.gameofday.GameOfDayRepositoryImpl
 import pl.quizpszczelarski.shared.data.leaderboard.FirebaseLeaderboardRepository
 import pl.quizpszczelarski.shared.data.local.DatabaseDriverFactory
 import pl.quizpszczelarski.shared.data.local.SqlDelightPendingScoreDataSource
@@ -86,6 +90,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                 is Route.Quiz -> listOf("Quiz", route.level, route.questionCount)
                 is Route.Result -> listOf("Result", route.score, route.total)
                 is Route.Leaderboard -> listOf("Leaderboard")
+                is Route.GameOfDay -> listOf("GameOfDay")
                 is Route.ForceUpdate -> listOf("ForceUpdate")
             }
         },
@@ -96,6 +101,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                 "Quiz" -> Route.Quiz(list[1] as String, list[2] as Int)
                 "Result" -> Route.Result(list[1] as Int, list[2] as Int)
                 "Leaderboard" -> Route.Leaderboard
+                "GameOfDay" -> Route.GameOfDay
                 "ForceUpdate" -> Route.ForceUpdate
                 else -> Route.Home // fallback
             }
@@ -119,6 +125,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
     val questionSyncService: pl.quizpszczelarski.shared.domain.repository.QuestionSyncService = questionRepository
     val userRepository = remember { FirebaseUserRepository(auth, firestore) }
     val leaderboardRepository = remember { FirebaseLeaderboardRepository(firestore) }
+    val gameOfDayRepository = remember { GameOfDayRepositoryImpl(settingsFactory.create()) }
 
     // Settings
     val settingsRepo = remember { SettingsRepositoryImpl(settingsFactory.create()) }
@@ -166,6 +173,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                 is Route.Quiz -> currentRoute = Route.Home
                 is Route.Result -> currentRoute = Route.Home
                 is Route.Leaderboard -> currentRoute = Route.Home
+                is Route.GameOfDay -> currentRoute = Route.Home
                 else -> { /* Do nothing, let system handle */ }
             }
         }
@@ -303,6 +311,9 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                         HomeEffect.NavigateToLeaderboard -> {
                                             currentRoute = Route.Leaderboard
                                         }
+                                        HomeEffect.NavigateToGameOfDay -> {
+                                            currentRoute = Route.GameOfDay
+                                        }
                                         is HomeEffect.PlayHaptic -> {
                                             if (settingsState.hapticsEnabled) {
                                                 haptics.impact(effect.type)
@@ -436,6 +447,23 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                             }
 
                             LeaderboardScreen(state = state, onIntent = vm::onIntent)
+                        }
+
+                        Route.GameOfDay -> {
+                            val vm = remember { GameOfDayViewModel(gameOfDayRepository) }
+                            DisposableEffect(Unit) { onDispose { vm.onCleared() } }
+                            val state by vm.state.collectAsState()
+
+                            LaunchedEffect(Unit) {
+                                vm.effect.collect { effect ->
+                                    when (effect) {
+                                        GameOfDayEffect.NavigateBack -> currentRoute = Route.Home
+                                        is GameOfDayEffect.ShowSnackbar -> showSnackbar(effect.message)
+                                    }
+                                }
+                            }
+
+                            GameOfDayScreen(state = state, onIntent = vm::onIntent)
                         }
 
                         Route.ForceUpdate -> {

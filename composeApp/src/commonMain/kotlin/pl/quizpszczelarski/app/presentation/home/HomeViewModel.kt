@@ -21,6 +21,10 @@ class HomeViewModel(
                 emitEffect(HomeEffect.PlayHaptic(ImpactType.Light))
                 emitEffect(HomeEffect.NavigateToLeaderboard)
             }
+            HomeIntent.ViewGameOfDay -> {
+                emitEffect(HomeEffect.PlayHaptic(ImpactType.Light))
+                emitEffect(HomeEffect.NavigateToGameOfDay)
+            }
             HomeIntent.ToggleHaptics -> {
                 emitEffect(HomeEffect.ToggleHaptics)
             }

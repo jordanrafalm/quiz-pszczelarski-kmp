@@ -6,6 +6,7 @@ package pl.quizpszczelarski.app.presentation.home
 sealed interface HomeIntent {
     data object StartQuiz : HomeIntent
     data object ViewLeaderboard : HomeIntent
+    data object ViewGameOfDay : HomeIntent
     data object ToggleHaptics : HomeIntent
     data object ToggleSound : HomeIntent
     data object ToggleNotifications : HomeIntent

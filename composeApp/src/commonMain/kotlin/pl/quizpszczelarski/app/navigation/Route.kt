@@ -9,6 +9,7 @@ sealed interface Route {
     data class Quiz(val level: String, val questionCount: Int = 5) : Route
     data class Result(val score: Int, val total: Int) : Route
     data object Leaderboard : Route
+    data object GameOfDay : Route
     /** Blocking force-update screen — shown when Remote Config requires a newer app version. */
     data object ForceUpdate : Route
 }

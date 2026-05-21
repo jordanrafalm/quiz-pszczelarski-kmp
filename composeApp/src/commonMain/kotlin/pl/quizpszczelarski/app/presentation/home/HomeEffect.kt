@@ -8,6 +8,7 @@ import pl.quizpszczelarski.app.platform.ImpactType
 sealed interface HomeEffect {
     data class NavigateToQuiz(val level: String, val questionCount: Int) : HomeEffect
     data object NavigateToLeaderboard : HomeEffect
+    data object NavigateToGameOfDay : HomeEffect
     data class PlayHaptic(val type: ImpactType) : HomeEffect
     /** Toggle haptics on/off — handled by AppNavigation via SettingsRepository. */
     data object ToggleHaptics : HomeEffect
