@@ -4,13 +4,16 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -26,6 +29,7 @@ import pl.quizpszczelarski.app.ui.components.MemoryPairsBoard
 import pl.quizpszczelarski.app.ui.components.SequenceBoard
 import pl.quizpszczelarski.app.ui.components.QuizTopBar
 import pl.quizpszczelarski.app.ui.theme.AppTheme
+import pl.quizpszczelarski.app.ui.theme.AppSpacing
 
 /**
  * Game of Day screen — shows Menu, then the selected game, then GameOver result.
@@ -72,7 +76,7 @@ fun GameOfDayScreen(
 private fun MenuContent(
     state: GameOfDayState,
     onIntent: (GameOfDayIntent) -> Unit,
-    spacing: AppTheme.Spacing,
+    spacing: AppSpacing,
 ) {
     Column(
         modifier = Modifier
@@ -100,6 +104,32 @@ private fun MenuContent(
         )
         Spacer(modifier = Modifier.height(spacing.lg))
 
+        // Game type selector — lets the user switch games for testing
+        Text(
+            text = "Wybierz grę:",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            GameOfDayType.entries.chunked(2).forEach { rowTypes ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    rowTypes.forEach { type ->
+                        FilterChip(
+                            selected = state.todayType == type,
+                            onClick = { onIntent(GameOfDayIntent.SelectGameType(type)) },
+                            label = { Text("${type.emoji()} ${type.title()}") },
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(spacing.lg))
+
         // Show completion badge if already played today
         if (state.isCompleted) {
             Text(
@@ -120,7 +150,7 @@ private fun MenuContent(
 private fun PlayingContent(
     state: GameOfDayState,
     onIntent: (GameOfDayIntent) -> Unit,
-    spacing: AppTheme.Spacing,
+    spacing: AppSpacing,
 ) {
     when (state.todayType) {
         GameOfDayType.FlappyBee -> FlappyBeeView(
@@ -147,7 +177,7 @@ private fun GameOverContent(
     screenState: GameOfDayState.ScreenState.GameOver,
     gameType: GameOfDayType,
     onIntent: (GameOfDayIntent) -> Unit,
-    spacing: AppTheme.Spacing,
+    spacing: AppSpacing,
 ) {
     val scoreLabel = when (gameType) {
         GameOfDayType.Maze -> "Liczba ruchów: ${screenState.score} 🐝"

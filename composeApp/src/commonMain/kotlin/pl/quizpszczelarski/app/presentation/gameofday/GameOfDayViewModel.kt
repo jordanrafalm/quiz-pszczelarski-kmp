@@ -55,6 +55,13 @@ class GameOfDayViewModel(
                 emitEffect(GameOfDayEffect.NavigateBack)
                 state
             }
+
+            is GameOfDayIntent.SelectGameType -> {
+                state.copy(
+                    todayType = intent.type,
+                    screenState = GameOfDayState.ScreenState.Menu,
+                )
+            }
         }
     }
 }

@@ -9,4 +9,6 @@ sealed interface GameOfDayIntent {
     data class EndGame(val score: Int) : GameOfDayIntent
     data object RetryGame : GameOfDayIntent
     data object BackToHome : GameOfDayIntent
+    /** Overrides today's game type — useful for testing without waiting for the day to change. */
+    data class SelectGameType(val type: GameOfDayType) : GameOfDayIntent
 }

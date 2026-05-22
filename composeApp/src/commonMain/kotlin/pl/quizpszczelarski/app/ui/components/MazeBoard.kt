@@ -203,7 +203,7 @@ private fun mazeAdjacent(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
  * - ~30% density — ensures perimeter path from start to goal always exists.
  */
 private fun buildMazeWalls(seed: Long): Set<Pair<Int, Int>> {
-    val rng = kotlin.random.Random(seed)
+    val rng = kotlin.random.Random(seed)  // intentional: stdlib Random, not imported alias
     val goalPos = (MAZE_SIZE - 1) to (MAZE_SIZE - 1)
     val walls = mutableSetOf<Pair<Int, Int>>()
 
