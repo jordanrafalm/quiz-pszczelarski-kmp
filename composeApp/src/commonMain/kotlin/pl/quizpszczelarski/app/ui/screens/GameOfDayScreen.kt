@@ -209,7 +209,26 @@ private fun GameOverContent(
             color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
         )
+        Spacer(modifier = Modifier.height(spacing.md))
+        
+        // Ranking info — conditional on whether points were counted
+        if (screenState.pointsAdded) {
+            Text(
+                text = "✅ Punkty dodane do rankingu!",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.secondary,
+                textAlign = TextAlign.Center,
+            )
+        } else {
+            Text(
+                text = "ℹ️ Już grałeś dzisiaj — wynik nie liczył się ponownie",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
         Spacer(modifier = Modifier.height(spacing.lg))
+        
         Button(onClick = { onIntent(GameOfDayIntent.RetryGame) }) {
             Text("Zagraj ponownie")
         }

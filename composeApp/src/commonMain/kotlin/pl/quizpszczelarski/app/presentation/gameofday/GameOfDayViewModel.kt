@@ -1,17 +1,21 @@
 package pl.quizpszczelarski.app.presentation.gameofday
 
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import pl.quizpszczelarski.app.presentation.base.MviViewModel
 import pl.quizpszczelarski.shared.data.gameofday.GameOfDayRepository
+import pl.quizpszczelarski.shared.domain.repository.UserRepository
 
 /**
  * ViewModel for the Game of Day screen.
- * Manages game state, type selection (via date), and persistence.
+ * Manages game state, type selection (via date), persistence, and score integration with Firestore.
  */
 class GameOfDayViewModel(
     private val gameOfDayRepository: GameOfDayRepository? = null,
+    private val userRepository: UserRepository? = null,
+    private val uid: String? = null,
 ) : MviViewModel<GameOfDayState, GameOfDayIntent, GameOfDayEffect>(
     initialState = GameOfDayState()
 ) {
@@ -38,9 +42,28 @@ class GameOfDayViewModel(
             }
 
             is GameOfDayIntent.EndGame -> {
-                gameOfDayRepository?.saveGameResult(intent.score)
+                val alreadyCompleted = gameOfDayRepository?.isCompletedToday() ?: false
+                
+                if (!alreadyCompleted && uid != null) {
+                    // First game of the day — add score to local storage and Firestore
+                    scope.launch {
+                        try {
+                            gameOfDayRepository?.saveGameResult(intent.score)
+                            userRepository?.addScore(uid, intent.score)
+                            emitEffect(GameOfDayEffect.ShowSnackbar("✅ Dodano ${intent.score} pkt do rankingu!"))
+                        } catch (e: Exception) {
+                            emitEffect(GameOfDayEffect.ShowSnackbar("⚠️ Błąd: ${e.message}"))
+                        }
+                    }
+                } else if (alreadyCompleted) {
+                    emitEffect(GameOfDayEffect.ShowSnackbar("⚠️ Już zagrałeś dzisiaj! Punkty nie liczą się ponownie."))
+                }
+                
                 state.copy(
-                    screenState = GameOfDayState.ScreenState.GameOver(intent.score),
+                    screenState = GameOfDayState.ScreenState.GameOver(
+                        score = intent.score,
+                        pointsAdded = !alreadyCompleted && uid != null,
+                    ),
                     score = intent.score,
                     isCompleted = true,
                     completedDate = Clock.System.todayIn(TimeZone.currentSystemDefault()),

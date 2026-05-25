@@ -15,6 +15,6 @@ data class GameOfDayState(
     sealed interface ScreenState {
         data object Menu : ScreenState
         data object Playing : ScreenState
-        data class GameOver(val score: Int) : ScreenState
+        data class GameOver(val score: Int, val pointsAdded: Boolean = true) : ScreenState
     }
 }

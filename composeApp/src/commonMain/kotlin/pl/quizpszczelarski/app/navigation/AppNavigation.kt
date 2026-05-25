@@ -455,7 +455,13 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                         }
 
                         Route.GameOfDay -> {
-                            val vm = remember { GameOfDayViewModel(gameOfDayRepository) }
+                            val vm = remember {
+                                GameOfDayViewModel(
+                                    gameOfDayRepository = gameOfDayRepository,
+                                    userRepository = userRepository,
+                                    uid = currentUid,
+                                )
+                            }
                             DisposableEffect(Unit) { onDispose { vm.onCleared() } }
                             val state by vm.state.collectAsState()
 
