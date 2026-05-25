@@ -6,7 +6,7 @@ import pl.quizpszczelarski.app.platform.ImpactType
  * One-off effects emitted by QuizViewModel.
  */
 sealed interface QuizEffect {
-    data class NavigateToResult(val score: Int, val total: Int) : QuizEffect
+    data class NavigateToResult(val score: Int, val total: Int, val level: String, val questionCount: Int) : QuizEffect
     data class ShowSnackbar(val message: String) : QuizEffect
     /** No questions loaded (empty cache + offline). UI should navigate back. */
     data object NoQuestionsAvailable : QuizEffect

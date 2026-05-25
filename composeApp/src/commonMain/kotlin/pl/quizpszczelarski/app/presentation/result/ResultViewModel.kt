@@ -18,6 +18,8 @@ import pl.quizpszczelarski.shared.domain.usecase.SubmitScoreUseCase
 class ResultViewModel(
     score: Int,
     totalQuestions: Int,
+    private val quizLevel: String = "normal",
+    private val quizQuestionCount: Int = 5,
     private val submitScore: SubmitScoreUseCase,
     private val uid: String?,
     private val pendingScoreDataSource: PendingScoreDataSource,
@@ -25,7 +27,12 @@ class ResultViewModel(
     private val settingsRepository: SettingsRepository,
     private val analyticsService: AnalyticsService,
 ) : MviViewModel<ResultState, ResultIntent, ResultEffect>(
-    ResultState(score = score, totalQuestions = totalQuestions),
+    ResultState(
+        score = score,
+        totalQuestions = totalQuestions,
+        quizLevel = quizLevel,
+        quizQuestionCount = quizQuestionCount,
+    ),
 ) {
 
     init {
@@ -69,7 +76,12 @@ class ResultViewModel(
     override fun reduce(state: ResultState, intent: ResultIntent): ResultState {
         when (intent) {
             ResultIntent.GoBack -> emitEffect(ResultEffect.NavigateToHome)
-            ResultIntent.PlayAgain -> emitEffect(ResultEffect.NavigateToHome)
+            ResultIntent.PlayAgain -> emitEffect(
+                ResultEffect.RestartQuizWithSameParams(
+                    level = state.quizLevel,
+                    questionCount = state.quizQuestionCount,
+                )
+            )
             ResultIntent.ViewLeaderboard -> emitEffect(ResultEffect.NavigateToLeaderboard)
             ResultIntent.ShowNicknameDialog -> return state.copy(showNicknamePrompt = true)
             is ResultIntent.UpdateNicknameInput -> return state.copy(nicknameInput = intent.text)

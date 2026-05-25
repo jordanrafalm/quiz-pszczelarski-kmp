@@ -190,6 +190,8 @@ class QuizViewModel(
                         QuizEffect.NavigateToResult(
                             score = state.score,
                             total = state.totalQuestions,
+                            level = level,
+                            questionCount = questionCount,
                         ),
                     )
                     state

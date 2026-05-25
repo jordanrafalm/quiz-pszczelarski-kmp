@@ -89,7 +89,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                 is Route.Splash -> listOf("Splash")
                 is Route.Home -> listOf("Home")
                 is Route.Quiz -> listOf("Quiz", route.level, route.questionCount)
-                is Route.Result -> listOf("Result", route.score, route.total)
+                is Route.Result -> listOf("Result", route.score, route.total, route.level, route.questionCount)
                 is Route.Leaderboard -> listOf("Leaderboard")
                 is Route.GameOfDay -> listOf("GameOfDay")
                 is Route.ForceUpdate -> listOf("ForceUpdate")
@@ -100,7 +100,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                 "Splash" -> Route.Splash
                 "Home" -> Route.Home
                 "Quiz" -> Route.Quiz(list[1] as String, list[2] as Int)
-                "Result" -> Route.Result(list[1] as Int, list[2] as Int)
+                "Result" -> Route.Result(list[1] as Int, list[2] as Int, list.getOrNull(3) as? String ?: "normal", list.getOrNull(4) as? Int ?: 5)
                 "Leaderboard" -> Route.Leaderboard
                 "GameOfDay" -> Route.GameOfDay
                 "ForceUpdate" -> Route.ForceUpdate
@@ -403,6 +403,8 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                             currentRoute = Route.Result(
                                                 score = effect.score,
                                                 total = effect.total,
+                                                level = effect.level,
+                                                questionCount = effect.questionCount,
                                             )
                                         }
                                         is QuizEffect.ShowSnackbar -> {
@@ -432,6 +434,8 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                 ResultViewModel(
                                     score = route.score,
                                     totalQuestions = route.total,
+                                    quizLevel = route.level,
+                                    quizQuestionCount = route.questionCount,
                                     submitScore = submitScore,
                                     uid = currentUid,
                                     pendingScoreDataSource = pendingScoreDataSource,
@@ -448,6 +452,13 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                     when (effect) {
                                         ResultEffect.NavigateToHome -> currentRoute = Route.Home
                                         ResultEffect.NavigateToLeaderboard -> currentRoute = Route.Leaderboard
+                                        is ResultEffect.RestartQuizWithSameParams -> {
+                                            quizRunIndex++
+                                            currentRoute = Route.Quiz(
+                                                level = effect.level,
+                                                questionCount = effect.questionCount,
+                                            )
+                                        }
                                         is ResultEffect.ShowError -> {
                                             showSnackbar(effect.message)
                                         }
