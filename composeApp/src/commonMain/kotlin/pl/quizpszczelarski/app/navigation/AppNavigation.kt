@@ -47,6 +47,7 @@ import pl.quizpszczelarski.app.presentation.quiz.QuizEffect
 import pl.quizpszczelarski.app.presentation.quiz.QuizViewModel
 import pl.quizpszczelarski.app.presentation.result.ResultEffect
 import pl.quizpszczelarski.app.presentation.result.ResultViewModel
+import pl.quizpszczelarski.app.ui.components.GameOfDayIntroDialog
 import pl.quizpszczelarski.app.ui.screens.ForceUpdateScreen
 import pl.quizpszczelarski.app.ui.screens.GameOfDayScreen
 import pl.quizpszczelarski.app.ui.screens.HomeScreen
@@ -109,6 +110,7 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
     )
 
     var currentRoute by rememberSaveable(stateSaver = routeSaver) { mutableStateOf<Route>(Route.Splash) }
+    var showGameOfDayIntro by remember { mutableStateOf(false) }
 
     // Firebase instances (GitLive singletons)
     val auth = remember { Firebase.auth }
@@ -300,6 +302,20 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                             )
                                         }
                                     }
+                                }
+
+                                // Game of Day intro — show once after the first update that adds the feature
+                                val currentVersion = getAppVersion()
+                                val savedVersion = settingsRepo.getSavedAppVersion()
+                                if (savedVersion != currentVersion && !settingsRepo.hasSeenGameOfDayIntro()) {
+                                    showGameOfDayIntro = true
+                                    coroutineScope.launch {
+                                        settingsRepo.setSavedAppVersion(currentVersion)
+                                        settingsRepo.setSeenGameOfDayIntro(true)
+                                    }
+                                } else if (savedVersion.isEmpty()) {
+                                    // First install — persist version, skip intro (nothing to introduce yet)
+                                    coroutineScope.launch { settingsRepo.setSavedAppVersion(currentVersion) }
                                 }
 
                                 // Force update check
@@ -498,6 +514,17 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                             ForceUpdateScreen()
                         }
                     }
+                }
+
+                // Game of Day intro dialog — shown once after the update that introduces the feature
+                if (showGameOfDayIntro) {
+                    GameOfDayIntroDialog(
+                        onDismiss = { showGameOfDayIntro = false },
+                        onPlayNow = {
+                            showGameOfDayIntro = false
+                            currentRoute = Route.GameOfDay
+                        },
+                    )
                 }
             }
         }
