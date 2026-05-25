@@ -1,6 +1,7 @@
 package pl.quizpszczelarski.shared.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import pl.quizpszczelarski.shared.domain.model.NotificationPhase
 import pl.quizpszczelarski.shared.domain.model.SettingsState
 
 /**
@@ -33,4 +34,26 @@ interface SettingsRepository {
 
     /** Increment app launch counter by 1. */
     suspend fun incrementAppLaunchCount()
+
+    // ── Notification phase tracking ─────────────────────────────────────────
+
+    /** Current phase of Game of Day notification scheduling. */
+    fun getGameOfDayNotificationPhase(): NotificationPhase
+
+    /** Persist the current Game of Day notification phase. */
+    suspend fun setGameOfDayNotificationPhase(phase: NotificationPhase)
+
+    // ── Intro dialog tracking ────────────────────────────────────────────────
+
+    /** Saved app version string (used to detect fresh install / update). */
+    fun getSavedAppVersion(): String
+
+    /** Persist the app version seen by the user. */
+    suspend fun setSavedAppVersion(version: String)
+
+    /** Whether the "Game of Day intro" dialog has already been shown. */
+    fun hasSeenGameOfDayIntro(): Boolean
+
+    /** Mark that the intro dialog has been shown. */
+    suspend fun setSeenGameOfDayIntro(seen: Boolean)
 }

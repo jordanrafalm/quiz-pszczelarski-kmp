@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
+import pl.quizpszczelarski.app.notification.GameOfDayReminderReceiver
 import pl.quizpszczelarski.app.notification.QuizReminderReceiver
 import java.util.Calendar
 
@@ -42,19 +43,29 @@ class AndroidNotificationScheduler(
 
     override fun scheduleQuizReminder() {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val pendingIntent = buildPendingIntent() ?: return
+        val pendingIntent = buildQuizPendingIntent() ?: return
 
-        // Calculate next 18:00 that is >= 24h from now
-        val now = System.currentTimeMillis()
-        val calendar = Calendar.getInstance().apply {
-            timeInMillis = now + AlarmManager.INTERVAL_DAY
-            set(Calendar.HOUR_OF_DAY, 18)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
-        val triggerAt = calendar.timeInMillis
+        // Trigger at next 18:00 that is >= 24h from now, then repeat every 14 days
+        val triggerAt = nextTriggerAt(daysFromNow = 1)
+        alarmManager.setInexactRepeating(
+            AlarmManager.RTC_WAKEUP,
+            triggerAt,
+            AlarmManager.INTERVAL_DAY * 14,
+            pendingIntent,
+        )
+    }
 
+    override fun cancelQuizReminder() {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        buildQuizPendingIntent()?.let { alarmManager.cancel(it) }
+    }
+
+    override fun scheduleGameOfDayReminder() {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val pendingIntent = buildGameOfDayPendingIntent() ?: return
+
+        // Trigger in 2 days at 18:00, then repeat every 2 days
+        val triggerAt = nextTriggerAt(daysFromNow = 2)
         alarmManager.setInexactRepeating(
             AlarmManager.RTC_WAKEUP,
             triggerAt,
@@ -63,22 +74,44 @@ class AndroidNotificationScheduler(
         )
     }
 
-    override fun cancelQuizReminder() {
+    override fun cancelGameOfDayReminder() {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        buildPendingIntent()?.let { alarmManager.cancel(it) }
+        buildGameOfDayPendingIntent()?.let { alarmManager.cancel(it) }
     }
 
-    private fun buildPendingIntent(): PendingIntent? {
+    private fun nextTriggerAt(daysFromNow: Int): Long {
+        val now = System.currentTimeMillis()
+        return Calendar.getInstance().apply {
+            timeInMillis = now + AlarmManager.INTERVAL_DAY * daysFromNow
+            set(Calendar.HOUR_OF_DAY, 18)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+    }
+
+    private fun buildQuizPendingIntent(): PendingIntent? {
         val intent = Intent(context, QuizReminderReceiver::class.java)
         return PendingIntent.getBroadcast(
             context,
-            REQUEST_CODE,
+            REQUEST_CODE_QUIZ,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
+    private fun buildGameOfDayPendingIntent(): PendingIntent? {
+        val intent = Intent(context, GameOfDayReminderReceiver::class.java)
+        return PendingIntent.getBroadcast(
+            context,
+            REQUEST_CODE_GAME_OF_DAY,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }
 
     companion object {
-        private const val REQUEST_CODE = 1001
+        private const val REQUEST_CODE_QUIZ = 1001
+        private const val REQUEST_CODE_GAME_OF_DAY = 1002
     }
 }

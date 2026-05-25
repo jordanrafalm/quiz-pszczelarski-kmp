@@ -6,6 +6,7 @@ import com.russhwolf.settings.set
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import pl.quizpszczelarski.shared.domain.model.NotificationPhase
 import pl.quizpszczelarski.shared.domain.model.SettingsState
 import pl.quizpszczelarski.shared.domain.repository.SettingsRepository
 
@@ -19,6 +20,9 @@ class SettingsRepositoryImpl(
         private const val KEY_HAS_CUSTOM_NICKNAME = "has_custom_nickname"
         private const val KEY_NOTIFICATIONS_ENABLED = "notifications_enabled"
         private const val KEY_APP_LAUNCH_COUNT = "app_launch_count"
+        private const val KEY_GOD_NOTIFICATION_PHASE = "god_notification_phase"
+        private const val KEY_SAVED_APP_VERSION = "saved_app_version"
+        private const val KEY_SEEN_GOD_INTRO = "seen_god_intro"
     }
 
     private val _state = MutableStateFlow(readFromDisk())
@@ -53,6 +57,27 @@ class SettingsRepositoryImpl(
     override suspend fun incrementAppLaunchCount() {
         val newCount = getAppLaunchCount() + 1
         settings[KEY_APP_LAUNCH_COUNT] = newCount
+    }
+
+    override fun getGameOfDayNotificationPhase(): NotificationPhase {
+        val name = settings[KEY_GOD_NOTIFICATION_PHASE, NotificationPhase.INITIAL.name]
+        return NotificationPhase.entries.firstOrNull { it.name == name } ?: NotificationPhase.INITIAL
+    }
+
+    override suspend fun setGameOfDayNotificationPhase(phase: NotificationPhase) {
+        settings[KEY_GOD_NOTIFICATION_PHASE] = phase.name
+    }
+
+    override fun getSavedAppVersion(): String = settings[KEY_SAVED_APP_VERSION, ""]
+
+    override suspend fun setSavedAppVersion(version: String) {
+        settings[KEY_SAVED_APP_VERSION] = version
+    }
+
+    override fun hasSeenGameOfDayIntro(): Boolean = settings[KEY_SEEN_GOD_INTRO, false]
+
+    override suspend fun setSeenGameOfDayIntro(seen: Boolean) {
+        settings[KEY_SEEN_GOD_INTRO] = seen
     }
 
     private fun readFromDisk(): SettingsState {

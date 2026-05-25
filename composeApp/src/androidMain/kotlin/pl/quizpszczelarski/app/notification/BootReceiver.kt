@@ -23,7 +23,9 @@ class BootReceiver : BroadcastReceiver() {
         val notificationsEnabled = prefs.getBoolean("notifications_enabled", true)
 
         if (notificationsEnabled) {
-            AndroidNotificationScheduler(context).scheduleQuizReminder()
+            val scheduler = AndroidNotificationScheduler(context)
+            scheduler.scheduleQuizReminder()
+            scheduler.scheduleGameOfDayReminder()
         }
     }
 }

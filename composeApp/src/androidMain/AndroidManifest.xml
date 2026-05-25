@@ -30,6 +30,11 @@
             android:name="pl.quizpszczelarski.app.notification.QuizReminderReceiver"
             android:exported="false" />
 
+        <!-- Game of Day reminder alarm receiver -->
+        <receiver
+            android:name="pl.quizpszczelarski.app.notification.GameOfDayReminderReceiver"
+            android:exported="false" />
+
         <!-- Reschedule alarms after device reboot -->
         <receiver
             android:name="pl.quizpszczelarski.app.notification.BootReceiver"

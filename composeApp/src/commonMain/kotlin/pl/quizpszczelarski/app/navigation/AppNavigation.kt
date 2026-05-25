@@ -272,8 +272,15 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                     coroutineScope.launch {
                                         try {
                                             val granted = notificationScheduler.requestPermission()
-                                            if (granted) notificationScheduler.scheduleQuizReminder()
-                                            else settingsRepo.setNotificationsEnabled(false)
+                                            if (granted) {
+                                                notificationScheduler.scheduleQuizReminder()
+                                                notificationScheduler.scheduleGameOfDayReminder()
+                                                settingsRepo.setGameOfDayNotificationPhase(
+                                                    pl.quizpszczelarski.shared.domain.model.NotificationPhase.REGULAR
+                                                )
+                                            } else {
+                                                settingsRepo.setNotificationsEnabled(false)
+                                            }
                                         } catch (_: Exception) { }
                                     }
                                 }
@@ -283,6 +290,16 @@ fun AppNavigation(driverFactory: DatabaseDriverFactory, settingsFactory: Setting
                                     notificationScheduler.isPermissionGranted()
                                 ) {
                                     notificationScheduler.scheduleQuizReminder()
+                                    // Schedule game of day reminder if not yet done
+                                    val godPhase = settingsRepo.getGameOfDayNotificationPhase()
+                                    if (godPhase == pl.quizpszczelarski.shared.domain.model.NotificationPhase.INITIAL) {
+                                        notificationScheduler.scheduleGameOfDayReminder()
+                                        coroutineScope.launch {
+                                            settingsRepo.setGameOfDayNotificationPhase(
+                                                pl.quizpszczelarski.shared.domain.model.NotificationPhase.REGULAR
+                                            )
+                                        }
+                                    }
                                 }
 
                                 // Force update check
