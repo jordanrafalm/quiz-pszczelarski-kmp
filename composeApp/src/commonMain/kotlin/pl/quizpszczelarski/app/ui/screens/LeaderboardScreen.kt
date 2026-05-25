@@ -47,7 +47,6 @@ import kotlinx.coroutines.delay
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardIntent
 import pl.quizpszczelarski.app.presentation.leaderboard.LeaderboardState
 import pl.quizpszczelarski.app.ui.components.AppButton
-import pl.quizpszczelarski.app.ui.components.AppButtonVariant
 import pl.quizpszczelarski.app.ui.components.LeaderboardEntryRow
 import pl.quizpszczelarski.app.ui.components.QuizTopBar
 import pl.quizpszczelarski.app.ui.components.UserPositionCard
