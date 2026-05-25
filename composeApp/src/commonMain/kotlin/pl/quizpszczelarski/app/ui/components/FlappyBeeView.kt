@@ -1,10 +1,13 @@
 package pl.quizpszczelarski.app.ui.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,8 +23,13 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import io.github.alexzhirkevich.compottie.Compottie
+import io.github.alexzhirkevich.compottie.LottieCompositionSpec
+import io.github.alexzhirkevich.compottie.rememberLottieComposition
+import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import kotlinx.coroutines.delay
 
 private data class FlappyPipe(
@@ -36,6 +44,14 @@ fun FlappyBeeView(
     onGameOver: (score: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val density = LocalDensity.current
+
+    // Lottie bee animation
+    val beeComposition by rememberLottieComposition {
+        val jsonBytes = quiz_pszczelarski_kmp.composeapp.generated.resources.Res.readBytes("files/flightbee.json")
+        LottieCompositionSpec.JsonString(jsonBytes.decodeToString())
+    }
+
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     var beeY by remember { mutableStateOf(0f) }
     var velocity by remember { mutableStateOf(0f) }
@@ -131,8 +147,6 @@ fun FlappyBeeView(
         ) {
             val w = size.width
             val h = size.height
-            val beeX = w * 0.25f
-            val beeR = h * 0.04f
             val pipeW = w * 0.14f
             val groundH = h * 0.07f
 
@@ -175,42 +189,34 @@ fun FlappyBeeView(
                 size = Size(w, groundH * 0.65f),
             )
 
-            // Bee
-            if (beeY > 0f) {
-                // Wings
-                drawOval(
-                    color = Color(0xCCE3F2FD),
-                    topLeft = Offset(beeX - beeR * 1.0f, beeY - beeR * 1.5f),
-                    size = Size(beeR * 0.9f, beeR * 0.85f),
-                )
-                drawOval(
-                    color = Color(0xCCE3F2FD),
-                    topLeft = Offset(beeX + beeR * 0.15f, beeY - beeR * 1.5f),
-                    size = Size(beeR * 0.9f, beeR * 0.85f),
-                )
-                // Body
-                drawCircle(
-                    color = Color(0xFFFFD600),
-                    radius = beeR,
-                    center = Offset(beeX, beeY),
-                )
-                // Stripe
-                drawRect(
-                    color = Color(0xFF1A1A1A),
-                    topLeft = Offset(beeX - beeR * 0.35f, beeY - beeR * 0.5f),
-                    size = Size(beeR * 0.7f, beeR),
-                )
-                // Eye
-                drawCircle(
-                    color = Color(0xFF1A1A1A),
-                    radius = beeR * 0.2f,
-                    center = Offset(beeX + beeR * 0.5f, beeY - beeR * 0.25f),
-                )
-            }
-
             // Dark overlay before game starts
             if (!gameRunning) {
                 drawRect(color = Color(0x55000000))
+            }
+        }
+
+        // Lottie bee — positioned over the canvas bee coordinates
+        if (beeY > 0f && canvasSize != IntSize.Zero) {
+            val w = canvasSize.width.toFloat()
+            val h = canvasSize.height.toFloat()
+            val beeX = w * 0.25f
+            val beeR = h * 0.04f
+            val beeSizePx = beeR * 4f  // slightly larger than the circle radius
+
+            with(density) {
+                Image(
+                    painter = rememberLottiePainter(
+                        composition = beeComposition,
+                        iterations = Compottie.IterateForever,
+                    ),
+                    contentDescription = "bee",
+                    modifier = Modifier
+                        .size(beeSizePx.toDp())
+                        .offset(
+                            x = (beeX - beeSizePx / 2f).toDp(),
+                            y = (beeY - beeSizePx / 2f).toDp(),
+                        ),
+                )
             }
         }
 

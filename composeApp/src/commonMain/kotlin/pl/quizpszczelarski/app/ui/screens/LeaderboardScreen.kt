@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -209,14 +210,22 @@ fun LeaderboardScreen(
                                                 modifier = Modifier.width(80.dp),
                                             )
                                             Spacer(modifier = Modifier.width(spacing.sm))
-                                            AppButton(
-                                                text = "\u2715",
-                                                onClick = {
-                                                    onIntent(LeaderboardIntent.CancelEditNickname)
-                                                },
-                                                variant = AppButtonVariant.Secondary,
-                                                modifier = Modifier.width(48.dp),
-                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(52.dp)
+                                                    .background(
+                                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                                        shape = CircleShape,
+                                                    )
+                                                    .clickable { onIntent(LeaderboardIntent.CancelEditNickname) },
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                Text(
+                                                    text = "\u2715",
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                )
+                                            }
                                         }
                                     }
                                 }
