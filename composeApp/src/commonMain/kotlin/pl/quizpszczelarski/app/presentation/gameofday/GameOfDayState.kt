@@ -7,13 +7,12 @@ import kotlinx.datetime.LocalDate
  */
 data class GameOfDayState(
     val todayType: GameOfDayType = GameOfDayType.FlappyBee,
-    val screenState: ScreenState = ScreenState.Menu,
+    val screenState: ScreenState = ScreenState.Playing,
     val score: Int = 0,
     val isCompleted: Boolean = false,
     val completedDate: LocalDate? = null,
 ) {
     sealed interface ScreenState {
-        data object Menu : ScreenState
         data object Playing : ScreenState
         data class GameOver(val score: Int, val pointsAdded: Boolean = true) : ScreenState
     }

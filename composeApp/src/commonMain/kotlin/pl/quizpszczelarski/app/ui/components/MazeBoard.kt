@@ -33,9 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
+import pl.quizpszczelarski.shared.domain.util.todayLocalDate
 import kotlin.random.Random
 
 private const val BASE_MAZE_SIZE = 6
@@ -51,7 +49,7 @@ fun MazeBoard(
     onComplete: (score: Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    val today = todayLocalDate()
     val dayOfWeek = today.dayOfWeek.ordinal  // 0=Mon, 1=Tue, ..., 6=Sun
     
     // Difficulty: 0=easy, 1=medium, 2=hard

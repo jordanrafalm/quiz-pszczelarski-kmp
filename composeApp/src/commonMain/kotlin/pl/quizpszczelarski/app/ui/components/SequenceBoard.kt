@@ -35,9 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
+import pl.quizpszczelarski.shared.domain.util.todayLocalDate
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -75,7 +73,7 @@ fun SequenceBoard(
 
     // Deterministic master sequence based on today's date
     val seed = remember {
-        Clock.System.todayIn(TimeZone.currentSystemDefault()).dayOfYear.toLong()
+        todayLocalDate().dayOfYear.toLong()
     }
     val masterSeq = remember(seed) {
         val rng = kotlin.random.Random(seed)

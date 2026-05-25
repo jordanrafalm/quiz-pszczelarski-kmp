@@ -1,16 +1,18 @@
 package pl.quizpszczelarski.app.presentation.gameofday
 
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
 import pl.quizpszczelarski.app.presentation.base.MviViewModel
 import pl.quizpszczelarski.shared.data.gameofday.GameOfDayRepository
 import pl.quizpszczelarski.shared.domain.repository.UserRepository
+import pl.quizpszczelarski.shared.domain.util.todayLocalDate
 
 /**
  * ViewModel for the Game of Day screen.
- * Manages game state, type selection (via date), persistence, and score integration with Firestore.
+ * Manages game state, persistence, and score integration with Firestore.
+ *
+ * On [GameOfDayIntent.LoadGameOfDay]:
+ *  - If already completed today → shows [GameOfDayState.ScreenState.GameOver] with previous score
+ *  - Otherwise → goes directly to [GameOfDayState.ScreenState.Playing] (no menu)
  */
 class GameOfDayViewModel(
     private val gameOfDayRepository: GameOfDayRepository? = null,
@@ -23,7 +25,7 @@ class GameOfDayViewModel(
     override fun reduce(state: GameOfDayState, intent: GameOfDayIntent): GameOfDayState {
         return when (intent) {
             GameOfDayIntent.LoadGameOfDay -> {
-                val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+                val today = todayLocalDate()
                 val todayType = GameOfDayType.fromDate(today)
                 val completedToday = gameOfDayRepository?.isCompletedToday() ?: false
                 val lastScore = if (completedToday) gameOfDayRepository?.getLastScore() ?: 0 else 0
@@ -33,19 +35,23 @@ class GameOfDayViewModel(
                     isCompleted = completedToday,
                     completedDate = if (completedToday) today else null,
                     score = lastScore,
-                    screenState = GameOfDayState.ScreenState.Menu,
+                    // Go directly to Playing; if already completed show GameOver
+                    screenState = if (completedToday) {
+                        GameOfDayState.ScreenState.GameOver(
+                            score = lastScore,
+                            pointsAdded = false,
+                        )
+                    } else {
+                        GameOfDayState.ScreenState.Playing
+                    },
                 )
-            }
-
-            GameOfDayIntent.StartGame -> {
-                state.copy(screenState = GameOfDayState.ScreenState.Playing)
             }
 
             is GameOfDayIntent.EndGame -> {
                 val alreadyCompleted = gameOfDayRepository?.isCompletedToday() ?: false
-                
+
                 if (!alreadyCompleted && uid != null) {
-                    // First game of the day — add score to local storage and Firestore
+                    // First game of the day — save score and add to ranking
                     scope.launch {
                         try {
                             gameOfDayRepository?.saveGameResult(intent.score)
@@ -58,7 +64,7 @@ class GameOfDayViewModel(
                 } else if (alreadyCompleted) {
                     emitEffect(GameOfDayEffect.ShowSnackbar("⚠️ Już zagrałeś dzisiaj! Punkty nie liczą się ponownie."))
                 }
-                
+
                 state.copy(
                     screenState = GameOfDayState.ScreenState.GameOver(
                         score = intent.score,
@@ -66,7 +72,7 @@ class GameOfDayViewModel(
                     ),
                     score = intent.score,
                     isCompleted = true,
-                    completedDate = Clock.System.todayIn(TimeZone.currentSystemDefault()),
+                    completedDate = todayLocalDate(),
                 )
             }
 
@@ -77,13 +83,6 @@ class GameOfDayViewModel(
             GameOfDayIntent.BackToHome -> {
                 emitEffect(GameOfDayEffect.NavigateBack)
                 state
-            }
-
-            is GameOfDayIntent.SelectGameType -> {
-                state.copy(
-                    todayType = intent.type,
-                    screenState = GameOfDayState.ScreenState.Menu,
-                )
             }
         }
     }

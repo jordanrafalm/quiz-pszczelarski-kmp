@@ -4,16 +4,13 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -32,7 +29,8 @@ import pl.quizpszczelarski.app.ui.theme.AppTheme
 import pl.quizpszczelarski.app.ui.theme.AppSpacing
 
 /**
- * Game of Day screen — shows Menu, then the selected game, then GameOver result.
+ * Game of Day screen — loads the correct game immediately, then shows GameOver result.
+ * No menu/selection step: clicking "Gra Dnia" on Home starts the game right away.
  */
 @Composable
 fun GameOfDayScreen(
@@ -50,13 +48,13 @@ fun GameOfDayScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
-        // Top bar with title
+        // Top bar — title + game type subtitle
         QuizTopBar(
             title = "Gra Dnia",
             onBackClick = { onIntent(GameOfDayIntent.BackToHome) },
         )
 
-        // Main content — no outer padding so FlappyBee can fill the screen edge-to-edge
+        // Main content
         AnimatedContent(
             targetState = state.screenState,
             transitionSpec = { AppTransitions.screenTransition() },
@@ -64,84 +62,9 @@ fun GameOfDayScreen(
             label = "GameOfDayScreenState",
         ) { screenState ->
             when (screenState) {
-                GameOfDayState.ScreenState.Menu -> MenuContent(state, onIntent, spacing)
                 GameOfDayState.ScreenState.Playing -> PlayingContent(state, onIntent, spacing)
                 is GameOfDayState.ScreenState.GameOver -> GameOverContent(screenState, state.todayType, onIntent, spacing)
             }
-        }
-    }
-}
-
-@Composable
-private fun MenuContent(
-    state: GameOfDayState,
-    onIntent: (GameOfDayIntent) -> Unit,
-    spacing: AppSpacing,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = spacing.lg),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = state.todayType.emoji(),
-            style = MaterialTheme.typography.displayLarge,
-        )
-        Spacer(modifier = Modifier.height(spacing.lg))
-        Text(
-            text = state.todayType.title(),
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(spacing.md))
-        Text(
-            text = state.todayType.description(),
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.height(spacing.lg))
-
-        // Game type selector — lets the user switch games for testing
-        Text(
-            text = "Wybierz grę:",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            GameOfDayType.entries.chunked(2).forEach { rowTypes ->
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    rowTypes.forEach { type ->
-                        FilterChip(
-                            selected = state.todayType == type,
-                            onClick = { onIntent(GameOfDayIntent.SelectGameType(type)) },
-                            label = { Text("${type.emoji()} ${type.title()}") },
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(spacing.lg))
-
-        // Show completion badge if already played today
-        if (state.isCompleted) {
-            Text(
-                text = "✅ Grasz już dzisiaj! Wynik: ${state.score}",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.height(spacing.lg))
-        }
-
-        Button(onClick = { onIntent(GameOfDayIntent.StartGame) }) {
-            Text("Zagraj")
         }
     }
 }
@@ -210,7 +133,7 @@ private fun GameOverContent(
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(spacing.md))
-        
+
         // Ranking info — conditional on whether points were counted
         if (screenState.pointsAdded) {
             Text(
@@ -228,7 +151,7 @@ private fun GameOverContent(
             )
         }
         Spacer(modifier = Modifier.height(spacing.lg))
-        
+
         Button(onClick = { onIntent(GameOfDayIntent.RetryGame) }) {
             Text("Zagraj ponownie")
         }

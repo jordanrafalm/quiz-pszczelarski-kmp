@@ -387,7 +387,7 @@ private fun HomeMainContent(
 
             ActionCard(
                 title = "Gra Dnia",
-                description = "Codzienna krótka gra",
+                description = "Codziennie inna krótka gra · ${state.todayGameType.emoji()} ${state.todayGameType.title()}",
                 icon = { Text("🎮", style = MaterialTheme.typography.headlineSmall) },
                 onClick = { if (!easterEggActive) onIntent(HomeIntent.ViewGameOfDay) },
                 iconBackgroundColor = MaterialTheme.colorScheme.tertiary,

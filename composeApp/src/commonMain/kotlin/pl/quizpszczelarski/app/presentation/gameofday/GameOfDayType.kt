@@ -2,6 +2,7 @@ package pl.quizpszczelarski.app.presentation.gameofday
 
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.DayOfWeek
+import pl.quizpszczelarski.shared.domain.util.todayLocalDate
 
 /**
  * Type of game for Game of Day. Changes daily based on LocalDate.
@@ -10,7 +11,7 @@ enum class GameOfDayType {
     FlappyBee, Maze, Memory, Sequence;
 
     companion object {
-        fun fromDate(date: LocalDate = LocalDate(2026, 5, 22)): GameOfDayType {
+        fun fromDate(date: LocalDate = todayLocalDate()): GameOfDayType {
             val dayOfWeek = date.dayOfWeek
             return when (dayOfWeek) {
                 DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.SATURDAY -> FlappyBee

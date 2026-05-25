@@ -17,6 +17,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.coroutines.core)
             api(libs.firebase.auth)
             api(libs.firebase.firestore)

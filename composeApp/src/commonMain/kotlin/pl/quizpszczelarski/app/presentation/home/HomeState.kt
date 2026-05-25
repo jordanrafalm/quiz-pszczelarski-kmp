@@ -1,5 +1,7 @@
 package pl.quizpszczelarski.app.presentation.home
 
+import pl.quizpszczelarski.app.presentation.gameofday.GameOfDayType
+
 /**
  * Immutable state for the Home screen.
  */
@@ -14,4 +16,6 @@ data class HomeState(
     val gameOfDayCompleted: Boolean = false,
     /** Score from today's Game of Day run (0 if not yet completed). */
     val gameOfDayScore: Int = 0,
+    /** Today's game type — shown in the "Gra Dnia" card description. */
+    val todayGameType: GameOfDayType = GameOfDayType.FlappyBee,
 )

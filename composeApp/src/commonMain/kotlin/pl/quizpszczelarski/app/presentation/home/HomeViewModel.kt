@@ -2,14 +2,16 @@ package pl.quizpszczelarski.app.presentation.home
 
 import pl.quizpszczelarski.app.platform.ImpactType
 import pl.quizpszczelarski.app.presentation.base.MviViewModel
+import pl.quizpszczelarski.app.presentation.gameofday.GameOfDayType
 import pl.quizpszczelarski.shared.data.gameofday.GameOfDayRepository
+import pl.quizpszczelarski.shared.domain.util.todayLocalDate
 
 /**
  * ViewModel for the Home screen.
  * Home has no complex state — mainly emits navigation effects.
  *
- * Reads Game of Day completion state from [gameOfDayRepository] at construction so the
- * badge on the "Gra Dnia" card is always fresh when the user returns to Home.
+ * Reads Game of Day completion state and today's game type at construction so the
+ * badges and descriptions on the "Gra Dnia" card are always fresh when the user returns to Home.
  */
 class HomeViewModel(
     newQuestionsAvailable: Boolean = false,
@@ -19,6 +21,7 @@ class HomeViewModel(
         newQuestionsAvailable = newQuestionsAvailable,
         gameOfDayCompleted = gameOfDayRepository?.isCompletedToday() ?: false,
         gameOfDayScore = gameOfDayRepository?.getLastScore() ?: 0,
+        todayGameType = GameOfDayType.fromDate(todayLocalDate()),
     )
 ) {
 
