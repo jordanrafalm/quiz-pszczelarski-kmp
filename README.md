@@ -10,6 +10,17 @@
 
 ---
 
+## Wersja 2.0.0
+
+Wydanie: 26 maja 2026
+
+Najważniejsze zmiany:
+
+- Podbicie wersji aplikacji do 2.0.0 (Android & iOS).
+- Nowy tryb "Gra Dnia" — codzienna mini-gra z systemem punktacji i dedykowanym intro.
+- Poprawki UI i drobne stabilizacje (Game of Day dialog, poprawione przyciski i layouty).
+
+
 ## Spis treści
 
 - [Zapotrzebowanie biznesowe](#zapotrzebowanie-biznesowe)
